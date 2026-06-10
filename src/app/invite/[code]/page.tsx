@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { auth, signIn } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -40,7 +41,13 @@ export default async function InvitePage({
     <>
       <SiteHeader />
       <main className="mx-auto w-full max-w-md flex-1 px-4 py-16 text-center">
-        <div className="mb-4 text-4xl">🏆</div>
+        <Image
+          src="/brand/icon.png"
+          alt="StayRank"
+          width={80}
+          height={80}
+          className="mx-auto mb-4 h-20 w-20 rounded-2xl shadow-sm"
+        />
         <h1 className="text-xl font-semibold text-slate-900">
           You&apos;re invited to “{trip.name}”
         </h1>

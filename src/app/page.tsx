@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { SignInButton } from "@/components/auth-buttons";
@@ -9,7 +10,14 @@ export default async function Home() {
   return (
     <main className="flex flex-1 items-center justify-center bg-slate-50 px-4">
       <div className="w-full max-w-md text-center">
-        <div className="mb-6 text-5xl">🏆</div>
+        <Image
+          src="/brand/icon.png"
+          alt="StayRank"
+          width={112}
+          height={112}
+          priority
+          className="mx-auto mb-5 h-28 w-28 rounded-2xl shadow-sm"
+        />
         <h1 className="text-3xl font-bold tracking-tight text-slate-900">
           StayRank
         </h1>

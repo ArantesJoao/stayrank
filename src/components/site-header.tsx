@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { auth } from "@/auth";
 import { SignOutButton } from "@/components/auth-buttons";
 
@@ -7,11 +8,15 @@ export async function SiteHeader() {
   return (
     <header className="border-b border-slate-200 bg-white">
       <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
-        <Link href={session ? "/trips" : "/"} className="flex items-center gap-2">
-          <span className="text-lg">🏆</span>
-          <span className="text-base font-semibold tracking-tight text-slate-900">
-            StayRank
-          </span>
+        <Link href={session ? "/trips" : "/"} className="flex items-center">
+          <Image
+            src="/brand/logo-horizontal.png"
+            alt="StayRank"
+            width={139}
+            height={40}
+            priority
+            className="h-8 w-auto"
+          />
         </Link>
         {session?.user && (
           <div className="flex items-center gap-3">
