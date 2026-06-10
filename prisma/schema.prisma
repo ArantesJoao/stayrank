@@ -126,11 +126,12 @@ model Accommodation {
   @@unique([cityId, dedupeKey])
 }
 
-// Travelers who suggested a given accommodation (for the avatar stack).
+// Travelers who suggested a given accommodation (avatar stack + their note).
 model AccommodationContributor {
   id              String   @id @default(cuid())
   accommodationId String
   userId          String
+  note            String?
   createdAt       DateTime @default(now())
 
   accommodation Accommodation @relation(fields: [accommodationId], references: [id], onDelete: Cascade)
@@ -146,7 +147,6 @@ model Ranking {
   cityId          String
   accommodationId String
   rank            Int
-  note            String?
 
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   city          City          @relation(fields: [cityId], references: [id], onDelete: Cascade)

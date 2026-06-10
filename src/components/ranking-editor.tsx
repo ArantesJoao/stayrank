@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { saveRankings } from "@/lib/actions";
 
 type Option = { id: string; name: string };
-type InitialRanking = { rank: number; accommodationId: string; note: string | null };
+type InitialRanking = { rank: number; accommodationId: string };
 
 const SLOTS = [
   { rank: 1, label: "🥇 1st choice", points: 3 },
@@ -25,9 +25,6 @@ export function RankingEditor({
   const [picks, setPicks] = useState<string[]>(() =>
     SLOTS.map((s) => initial.find((r) => r.rank === s.rank)?.accommodationId ?? ""),
   );
-  const [notes, setNotes] = useState<Record<string, string>>(() =>
-    Object.fromEntries(initial.map((r) => [r.accommodationId, r.note ?? ""])),
-  );
   const [saved, setSaved] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -44,17 +41,11 @@ export function RankingEditor({
     setSaved(false);
   }
 
-  function setNote(accId: string, value: string) {
-    setNotes((prev) => ({ ...prev, [accId]: value }));
-    setSaved(false);
-  }
-
   function onSave() {
     startTransition(async () => {
       await saveRankings(
         cityId,
         picks.map((p) => p || null),
-        notes,
       );
       setSaved(true);
     });
@@ -95,15 +86,6 @@ export function RankingEditor({
                 </option>
               ))}
             </select>
-            {chosen && (
-              <textarea
-                value={notes[chosen] ?? ""}
-                onChange={(e) => setNote(chosen, e.target.value)}
-                placeholder="Why this one? (optional note for the group)"
-                rows={2}
-                className="mt-2 w-full resize-y rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-900"
-              />
-            )}
           </div>
         );
       })}

@@ -2,7 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { getCityForUser } from "@/lib/data";
-import { addAccommodation, deleteAccommodation } from "@/lib/actions";
+import {
+  addAccommodation,
+  deleteAccommodation,
+  setMyNote,
+} from "@/lib/actions";
 import { RankingEditor } from "@/components/ranking-editor";
 import { AvatarStack } from "@/components/avatar-stack";
 import { formatPrice } from "@/lib/format";
@@ -23,15 +27,6 @@ export default async function CityPage({
   const addAccWithCity = addAccommodation.bind(null, cityId);
   const partySize = city.trip.partySize;
 
-  // Notes by accommodation for the discussion section.
-  const notesByAcc = new Map<string, { name: string; note: string; rank: number }[]>();
-  for (const r of city.rankings) {
-    if (!r.note) continue;
-    const list = notesByAcc.get(r.accommodationId) ?? [];
-    list.push({ name: r.user.name ?? "Someone", note: r.note, rank: r.rank });
-    notesByAcc.set(r.accommodationId, list);
-  }
-
   return (
     <div className="space-y-8">
       <div>
@@ -43,112 +38,35 @@ export default async function CityPage({
         </Link>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">{city.name}</h1>
         <p className="mt-1 text-sm text-slate-500">
+          {city.accommodations.length} option
+          {city.accommodations.length === 1 ? "" : "s"} ·{" "}
           {city.votersWhoRanked} of {city.memberCount} traveler
-          {city.memberCount === 1 ? "" : "s"} have ranked.
+          {city.memberCount === 1 ? "" : "s"} ranked
         </p>
       </div>
 
-      {/* Leaderboard */}
-      <section>
-        <h2 className="text-sm font-semibold text-slate-900">Leaderboard</h2>
-        {city.leaderboard.every((e) => e.points === 0) ? (
-          <p className="mt-2 text-sm text-slate-500">
-            No votes yet — be the first to rank below.
+      {/* Default view: accommodation cards with everyone's notes */}
+      <section className="space-y-3">
+        {city.accommodations.length === 0 ? (
+          <p className="text-sm text-slate-500">
+            No accommodations yet — add the first one below.
           </p>
         ) : (
-          <ol className="mt-3 space-y-2">
-            {city.leaderboard.map((entry, i) => (
-              <li
-                key={entry.accommodation.id}
+          city.accommodations.map((a) => {
+            const del = deleteAccommodation.bind(null, a.id);
+            const saveNote = setMyNote.bind(null, a.id);
+            const myNote =
+              a.contributors.find((c) => c.userId === userId)?.note ?? "";
+            const notes = a.contributors.filter((c) => c.note);
+
+            return (
+              <article
+                key={a.id}
                 className="rounded-xl border border-slate-200 bg-white p-4"
               >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg">{MEDALS[i] ?? `#${i + 1}`}</span>
-                    <div>
-                      <p className="font-medium text-slate-900">
-                        {entry.accommodation.url ? (
-                          <a
-                            href={entry.accommodation.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline"
-                          >
-                            {entry.accommodation.name}
-                          </a>
-                        ) : (
-                          entry.accommodation.name
-                        )}
-                      </p>
-                      <p className="text-xs text-slate-400">
-                        {entry.voteCount} vote{entry.voteCount === 1 ? "" : "s"}
-                        {formatPrice(
-                          entry.accommodation.totalPrice,
-                          partySize,
-                        ) && ` · ${formatPrice(entry.accommodation.totalPrice, partySize)}`}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-sm font-semibold text-slate-900">
-                    {entry.points} pts
-                  </span>
-                </div>
-                {notesByAcc.get(entry.accommodation.id)?.length ? (
-                  <ul className="mt-3 space-y-1.5 border-t border-slate-100 pt-3">
-                    {notesByAcc.get(entry.accommodation.id)!.map((n, j) => (
-                      <li key={j} className="text-sm text-slate-600">
-                        <span className="font-medium text-slate-800">
-                          {n.name}
-                        </span>{" "}
-                        <span className="text-xs text-slate-400">
-                          ({MEDALS[n.rank - 1]})
-                        </span>{" "}
-                        — {n.note}
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </li>
-            ))}
-          </ol>
-        )}
-      </section>
-
-      {/* Your ranking */}
-      <section>
-        <h2 className="text-sm font-semibold text-slate-900">Your top 3</h2>
-        <p className="text-xs text-slate-500">
-          Pick your favorites and add a note explaining why.
-        </p>
-        <div className="mt-3">
-          <RankingEditor
-            cityId={cityId}
-            options={city.accommodations.map((a) => ({ id: a.id, name: a.name }))}
-            initial={city.myRankings.map((r) => ({
-              rank: r.rank,
-              accommodationId: r.accommodationId,
-              note: r.note,
-            }))}
-          />
-        </div>
-      </section>
-
-      {/* Accommodations */}
-      <section>
-        <h2 className="text-sm font-semibold text-slate-900">
-          Accommodations ({city.accommodations.length})
-        </h2>
-        {city.accommodations.length > 0 && (
-          <ul className="mt-3 space-y-2">
-            {city.accommodations.map((a) => {
-              const del = deleteAccommodation.bind(null, a.id);
-              return (
-                <li
-                  key={a.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-slate-900">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-slate-900">
                       {a.url ? (
                         <a
                           href={a.url}
@@ -161,37 +79,79 @@ export default async function CityPage({
                       ) : (
                         a.name
                       )}
-                    </p>
-                    <div className="mt-1 flex items-center gap-2">
-                      <AvatarStack
-                        people={a.contributors.map((c) => ({
-                          name: c.user.name,
-                          image: c.user.image,
-                        }))}
-                        size={20}
-                      />
-                      <span className="text-xs text-slate-400">
+                    </h3>
+                    {formatPrice(a.totalPrice, partySize) && (
+                      <p className="mt-0.5 text-xs text-slate-500">
                         {formatPrice(a.totalPrice, partySize)}
-                      </span>
-                    </div>
+                      </p>
+                    )}
                   </div>
-                  <form action={del}>
-                    <button
-                      type="submit"
-                      className="shrink-0 text-xs text-slate-400 transition hover:text-red-600"
-                    >
-                      Remove
-                    </button>
-                  </form>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+                  <div className="flex shrink-0 items-center gap-3">
+                    <AvatarStack
+                      people={a.contributors.map((c) => ({
+                        name: c.user.name,
+                        image: c.user.image,
+                      }))}
+                      size={24}
+                    />
+                    <form action={del}>
+                      <button
+                        type="submit"
+                        className="text-xs text-slate-400 transition hover:text-red-600"
+                      >
+                        Remove
+                      </button>
+                    </form>
+                  </div>
+                </div>
 
+                {/* Everyone's notes */}
+                {notes.length > 0 && (
+                  <ul className="mt-3 space-y-2 border-t border-slate-100 pt-3">
+                    {notes.map((c) => (
+                      <li key={c.id} className="flex gap-2 text-sm">
+                        <span className="font-medium text-slate-800">
+                          {c.user.name ?? "Someone"}:
+                        </span>
+                        <span className="text-slate-600">{c.note}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {/* Your own note (add / edit) */}
+                <form
+                  action={saveNote}
+                  className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end"
+                >
+                  <textarea
+                    name="note"
+                    rows={1}
+                    defaultValue={myNote}
+                    placeholder="Add your note about this place…"
+                    className="flex-1 resize-y rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                  />
+                  <button
+                    type="submit"
+                    className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 transition hover:border-slate-400"
+                  >
+                    {myNote ? "Update note" : "Add note"}
+                  </button>
+                </form>
+              </article>
+            );
+          })
+        )}
+      </section>
+
+      {/* Add accommodation */}
+      <section>
+        <h2 className="text-sm font-semibold text-slate-900">
+          Add an accommodation
+        </h2>
         <form
           action={addAccWithCity}
-          className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-white p-4"
+          className="mt-3 space-y-2 rounded-xl border border-slate-200 bg-white p-4"
         >
           <input
             name="name"
@@ -216,6 +176,12 @@ export default async function CityPage({
               className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900 sm:w-28"
             />
           </div>
+          <textarea
+            name="note"
+            rows={2}
+            placeholder="Why this one? (optional note for the group)"
+            className="w-full resize-y rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-900"
+          />
           <button
             type="submit"
             className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
@@ -224,6 +190,76 @@ export default async function CityPage({
           </button>
         </form>
       </section>
+
+      {/* Ranking + results — hidden by default */}
+      <details className="group rounded-xl border border-slate-200 bg-white">
+        <summary className="flex cursor-pointer list-none items-center justify-between p-4 text-sm font-semibold text-slate-900">
+          <span>🏆 Rank your top 3 &amp; see results</span>
+          <span className="text-slate-400 transition group-open:rotate-180">
+            ▾
+          </span>
+        </summary>
+
+        <div className="space-y-8 border-t border-slate-100 p-4">
+          {/* Your ranking */}
+          <div>
+            <h3 className="text-sm font-semibold text-slate-900">Your top 3</h3>
+            <p className="text-xs text-slate-500">
+              Pick your favorites — 1st = 3 pts, 2nd = 2, 3rd = 1.
+            </p>
+            <div className="mt-3">
+              <RankingEditor
+                cityId={cityId}
+                options={city.accommodations.map((a) => ({
+                  id: a.id,
+                  name: a.name,
+                }))}
+                initial={city.myRankings.map((r) => ({
+                  rank: r.rank,
+                  accommodationId: r.accommodationId,
+                }))}
+              />
+            </div>
+          </div>
+
+          {/* Leaderboard */}
+          <div>
+            <h3 className="text-sm font-semibold text-slate-900">Leaderboard</h3>
+            {city.leaderboard.every((e) => e.points === 0) ? (
+              <p className="mt-2 text-sm text-slate-500">
+                No votes yet — be the first to rank above.
+              </p>
+            ) : (
+              <ol className="mt-3 space-y-2">
+                {city.leaderboard.map((entry, i) => (
+                  <li
+                    key={entry.accommodation.id}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-3"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="text-lg">
+                        {MEDALS[i] ?? `#${i + 1}`}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-slate-900">
+                          {entry.accommodation.name}
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          {entry.voteCount} vote
+                          {entry.voteCount === 1 ? "" : "s"}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-sm font-semibold text-slate-900">
+                      {entry.points} pts
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+        </div>
+      </details>
     </div>
   );
 }

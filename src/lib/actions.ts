@@ -86,6 +86,7 @@ export async function addAccommodation(cityId: string, formData: FormData) {
 
   const name = String(formData.get("name") ?? "").trim();
   const url = String(formData.get("url") ?? "").trim();
+  const note = String(formData.get("note") ?? "").trim() || null;
   const priceRaw = String(formData.get("totalPrice") ?? "").trim();
   if (!name) return;
   const price = priceRaw ? Number(priceRaw) : null;
@@ -100,15 +101,15 @@ export async function addAccommodation(cityId: string, formData: FormData) {
   });
 
   if (existing) {
-    // Already suggested — just record this traveler as a contributor and
-    // backfill any missing url/price.
+    // Already suggested — record this traveler as a contributor (with their
+    // note) and backfill any missing url/price.
     await prisma.$transaction([
       prisma.accommodationContributor.upsert({
         where: {
           accommodationId_userId: { accommodationId: existing.id, userId },
         },
-        create: { accommodationId: existing.id, userId },
-        update: {},
+        create: { accommodationId: existing.id, userId, note },
+        update: note ? { note } : {},
       }),
       prisma.accommodation.update({
         where: { id: existing.id },
@@ -127,12 +128,31 @@ export async function addAccommodation(cityId: string, formData: FormData) {
         totalPrice,
         dedupeKey,
         addedById: userId,
-        contributors: { create: { userId } },
+        contributors: { create: { userId, note } },
       },
     });
   }
 
   revalidatePath(`/trips/${city.tripId}/cities/${cityId}`);
+}
+
+/** Add or edit the current user's note on an accommodation (makes them a contributor). */
+export async function setMyNote(accommodationId: string, formData: FormData) {
+  const userId = await requireUserId();
+  const acc = await prisma.accommodation.findUnique({
+    where: { id: accommodationId },
+    include: { city: true },
+  });
+  if (!acc) return;
+  await assertMember(acc.city.tripId, userId);
+
+  const note = String(formData.get("note") ?? "").trim() || null;
+  await prisma.accommodationContributor.upsert({
+    where: { accommodationId_userId: { accommodationId, userId } },
+    create: { accommodationId, userId, note },
+    update: { note },
+  });
+  revalidatePath(`/trips/${acc.city.tripId}/cities/${acc.cityId}`);
 }
 
 export async function deleteAccommodation(accommodationId: string) {
@@ -149,14 +169,9 @@ export async function deleteAccommodation(accommodationId: string) {
 
 /**
  * Save the current user's top-3 for a city. `picks` is an ordered list of
- * accommodation ids (slot 1, 2, 3); empty slots are allowed. `notes` maps
- * accommodationId -> note text.
+ * accommodation ids (slot 1, 2, 3); empty slots are allowed.
  */
-export async function saveRankings(
-  cityId: string,
-  picks: (string | null)[],
-  notes: Record<string, string>,
-) {
+export async function saveRankings(cityId: string, picks: (string | null)[]) {
   const userId = await requireUserId();
   const city = await prisma.city.findUnique({ where: { id: cityId } });
   if (!city) return;
@@ -170,13 +185,7 @@ export async function saveRankings(
 
     for (const { accId, rank } of rows) {
       await tx.ranking.create({
-        data: {
-          cityId,
-          userId,
-          accommodationId: accId,
-          rank,
-          note: notes[accId]?.trim() || null,
-        },
+        data: { cityId, userId, accommodationId: accId, rank },
       });
     }
   });
