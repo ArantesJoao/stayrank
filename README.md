@@ -32,7 +32,9 @@ other projects that use 3000.
 
 1. Create a project at https://neon.tech
 2. **Connect → turn Connection pooling OFF** (direct connection, needed for migrations)
-3. Copy the connection string into `.env` as `DATABASE_URL`
+3. Copy the connection string into `.env` as `DATABASE_URL`, using
+   `?sslmode=verify-full` at the end (Neon has valid CA certs; this avoids a
+   noisy `pg` SSL warning)
 
 ### Google OAuth
 
