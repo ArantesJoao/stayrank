@@ -1,0 +1,35 @@
+import Link from "next/link";
+import { auth } from "@/auth";
+import { SignOutButton } from "@/components/auth-buttons";
+
+export async function SiteHeader() {
+  const session = await auth();
+  return (
+    <header className="border-b border-slate-200 bg-white">
+      <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
+        <Link href={session ? "/trips" : "/"} className="flex items-center gap-2">
+          <span className="text-lg">🏆</span>
+          <span className="text-base font-semibold tracking-tight text-slate-900">
+            StayRank
+          </span>
+        </Link>
+        {session?.user && (
+          <div className="flex items-center gap-3">
+            {session.user.image && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={session.user.image}
+                alt=""
+                className="h-7 w-7 rounded-full"
+              />
+            )}
+            <span className="hidden text-sm text-slate-600 sm:inline">
+              {session.user.name}
+            </span>
+            <SignOutButton />
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}

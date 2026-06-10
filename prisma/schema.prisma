@@ -1,0 +1,156 @@
+// StayRank — group trip accommodation ranker
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- Auth.js (NextAuth) models ----------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+
+  // App relations
+  createdTrips  Trip[]                     @relation("TripCreator")
+  memberships   TripMember[]
+  added         Accommodation[]            @relation("AccommodationAuthor")
+  contributions AccommodationContributor[]
+  rankings      Ranking[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------- App models ----------
+
+model Trip {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  inviteCode  String   @unique
+  createdById String
+  createdAt   DateTime @default(now())
+
+  createdBy User         @relation("TripCreator", fields: [createdById], references: [id])
+  members   TripMember[]
+  cities    City[]
+}
+
+// SQLite has no enums; role is "ADMIN" or "MEMBER".
+model TripMember {
+  id       String   @id @default(cuid())
+  tripId   String
+  userId   String
+  role     String   @default("MEMBER")
+  joinedAt DateTime @default(now())
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tripId, userId])
+}
+
+model City {
+  id     String @id @default(cuid())
+  tripId String
+  name   String
+  order  Int    @default(0)
+
+  trip           Trip            @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  accommodations Accommodation[]
+  rankings       Ranking[]
+}
+
+model Accommodation {
+  id            String   @id @default(cuid())
+  cityId        String
+  name          String
+  url           String?
+  pricePerNight Float?
+  // Normalized key used to dedupe within a city (lowercased url, else name).
+  dedupeKey     String
+  addedById     String
+  createdAt     DateTime @default(now())
+
+  city         City                       @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  addedBy      User                       @relation("AccommodationAuthor", fields: [addedById], references: [id])
+  contributors AccommodationContributor[]
+  rankings     Ranking[]
+
+  // The same place can only exist once per city.
+  @@unique([cityId, dedupeKey])
+}
+
+// Travelers who suggested a given accommodation (for the avatar stack).
+model AccommodationContributor {
+  id              String   @id @default(cuid())
+  accommodationId String
+  userId          String
+  createdAt       DateTime @default(now())
+
+  accommodation Accommodation @relation(fields: [accommodationId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([accommodationId, userId])
+}
+
+// One row per (user, city, rank-slot). rank is 1, 2 or 3.
+model Ranking {
+  id              String  @id @default(cuid())
+  userId          String
+  cityId          String
+  accommodationId String
+  rank            Int
+  note            String?
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  city          City          @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  accommodation Accommodation @relation(fields: [accommodationId], references: [id], onDelete: Cascade)
+
+  // Each slot (1/2/3) unique per user per city, and an accommodation
+  // can occupy at most one slot per user per city.
+  @@unique([userId, cityId, rank])
+  @@unique([userId, cityId, accommodationId])
+}
