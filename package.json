@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p $(node -e \"console.log(4100+Math.floor(Math.random()*3800))\")",
+    "dev": "next dev -p 3737",
+    "start": "next start -p 3737",
     "build": "next build",
-    "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
     "db:reset": "prisma migrate reset --force"

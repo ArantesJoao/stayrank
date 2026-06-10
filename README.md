@@ -22,11 +22,11 @@ Next.js 16 (App Router) · Prisma 7 + Postgres (Neon) · Auth.js v5 (Google) · 
 npm install
 cp .env.example .env        # then fill in DATABASE_URL + AUTH_SECRET + Google creds
 npx prisma migrate dev --name init   # create the schema in your Neon database
-npm run dev                 # starts on a RANDOM port (printed in the output)
+npm run dev                 # runs on http://localhost:3737
 ```
 
-The dev server picks a random port each run (4100–7900) so it never clashes with
-other local projects — watch the `- Local: http://localhost:XXXX` line.
+The dev server runs on a fixed non-default port (**3737**) so it won't clash with
+other projects that use 3000.
 
 ### Database (Neon Postgres)
 
@@ -37,14 +37,10 @@ other local projects — watch the `- Local: http://localhost:XXXX` line.
 ### Google OAuth
 
 1. Create an OAuth client (Web) at https://console.cloud.google.com/apis/credentials
-2. Add redirect URI `http://localhost:3000/api/auth/callback/google` (and your prod URL later)
+2. Add redirect URI `http://localhost:3737/api/auth/callback/google` (and your prod URL later)
 3. On the OAuth consent screen, add yourself + friends as **Test users**
 4. Put the client id/secret into `.env` as `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET`
 5. Generate `AUTH_SECRET` with `npx auth secret`
-
-> ⚠️ Google's redirect URI must match the port. NextAuth defaults to `localhost:3000`
-> for the callback regardless of the dev port; if you change the auth base URL, keep
-> the redirect URI in sync. For OAuth testing, run on port 3000 (`next dev -p 3000`).
 
 ## Deploying to Vercel
 
