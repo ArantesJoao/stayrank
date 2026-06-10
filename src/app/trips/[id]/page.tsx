@@ -2,8 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { getTripForUser } from "@/lib/data";
-import { addCity, updatePartySize } from "@/lib/actions";
+import { addCity, updateTripSettings } from "@/lib/actions";
 import { InviteLink } from "@/components/invite-link";
+import { CURRENCIES } from "@/lib/format";
 
 export default async function TripPage({
   params,
@@ -16,7 +17,7 @@ export default async function TripPage({
   if (!trip) notFound();
 
   const addCityWithTrip = addCity.bind(null, trip.id);
-  const updatePartySizeWithTrip = updatePartySize.bind(null, trip.id);
+  const updateSettingsWithTrip = updateTripSettings.bind(null, trip.id);
 
   return (
     <div className="space-y-8">
@@ -50,29 +51,40 @@ export default async function TripPage({
           ))}
         </div>
         <form
-          action={updatePartySizeWithTrip}
-          className="mt-4 flex flex-wrap items-center gap-2"
+          action={updateSettingsWithTrip}
+          className="mt-4 flex flex-wrap items-end gap-3"
         >
-          <label className="text-xs font-medium text-slate-500">
+          <label className="flex flex-col gap-1 text-xs font-medium text-slate-500">
             People splitting the cost
+            <input
+              name="partySize"
+              type="number"
+              min="1"
+              max="100"
+              defaultValue={trip.partySize}
+              className="w-20 rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-slate-900"
+            />
           </label>
-          <input
-            name="partySize"
-            type="number"
-            min="1"
-            max="100"
-            defaultValue={trip.partySize}
-            className="w-20 rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-slate-900"
-          />
+          <label className="flex flex-col gap-1 text-xs font-medium text-slate-500">
+            Currency
+            <select
+              name="currency"
+              defaultValue={trip.currency}
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-slate-900"
+            >
+              {CURRENCIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.code}
+                </option>
+              ))}
+            </select>
+          </label>
           <button
             type="submit"
             className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-400"
           >
             Update
           </button>
-          <span className="text-xs text-slate-400">
-            Used to split prices per person.
-          </span>
         </form>
 
         <div className="mt-4 border-t border-slate-100 pt-4">

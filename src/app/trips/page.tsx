@@ -2,6 +2,7 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { getUserTrips } from "@/lib/data";
 import { createTrip } from "@/lib/actions";
+import { CURRENCIES } from "@/lib/format";
 
 export default async function TripsPage() {
   const session = await auth();
@@ -61,17 +62,33 @@ export default async function TripsPage() {
             placeholder="Optional description"
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
           />
-          <label className="flex items-center gap-2 text-sm text-slate-600">
-            <span className="shrink-0">People splitting the cost</span>
-            <input
-              name="partySize"
-              type="number"
-              min="1"
-              max="100"
-              defaultValue={2}
-              className="w-20 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
-            />
-          </label>
+          <div className="flex flex-wrap gap-4">
+            <label className="flex items-center gap-2 text-sm text-slate-600">
+              <span className="shrink-0">People splitting the cost</span>
+              <input
+                name="partySize"
+                type="number"
+                min="1"
+                max="100"
+                defaultValue={2}
+                className="w-20 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+              />
+            </label>
+            <label className="flex items-center gap-2 text-sm text-slate-600">
+              <span className="shrink-0">Currency</span>
+              <select
+                name="currency"
+                defaultValue="EUR"
+                className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+              >
+                {CURRENCIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
           <button
             type="submit"
             className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"

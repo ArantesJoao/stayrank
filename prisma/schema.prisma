@@ -72,6 +72,8 @@ model Trip {
   inviteCode  String   @unique
   // How many people are splitting the cost (may differ from signed-up members).
   partySize   Int      @default(1)
+  // ISO 4217 currency code used to display prices (e.g. USD, EUR, BRL).
+  currency    String   @default("USD")
   createdById String
   createdAt   DateTime @default(now())
 

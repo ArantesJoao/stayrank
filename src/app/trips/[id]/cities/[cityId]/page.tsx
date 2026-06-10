@@ -26,6 +26,7 @@ export default async function CityPage({
 
   const addAccWithCity = addAccommodation.bind(null, cityId);
   const partySize = city.trip.partySize;
+  const currency = city.trip.currency;
 
   return (
     <div className="space-y-8">
@@ -80,9 +81,9 @@ export default async function CityPage({
                         a.name
                       )}
                     </h3>
-                    {formatPrice(a.totalPrice, partySize) && (
+                    {formatPrice(a.totalPrice, partySize, currency) && (
                       <p className="mt-0.5 text-xs text-slate-500">
-                        {formatPrice(a.totalPrice, partySize)}
+                        {formatPrice(a.totalPrice, partySize, currency)}
                       </p>
                     )}
                   </div>

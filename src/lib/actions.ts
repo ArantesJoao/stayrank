@@ -18,6 +18,15 @@ function clampPartySize(raw: FormDataEntryValue | null) {
   return Math.min(n, 100);
 }
 
+const ALLOWED_CURRENCIES = new Set([
+  "USD", "EUR", "GBP", "BRL", "JPY", "CAD", "AUD", "CHF", "MXN", "INR",
+]);
+
+function normalizeCurrency(raw: FormDataEntryValue | null) {
+  const code = String(raw ?? "").trim().toUpperCase();
+  return ALLOWED_CURRENCIES.has(code) ? code : "USD";
+}
+
 async function assertMember(tripId: string, userId: string) {
   const member = await prisma.tripMember.findUnique({
     where: { tripId_userId: { tripId, userId } },
@@ -31,6 +40,7 @@ export async function createTrip(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const partySize = clampPartySize(formData.get("partySize"));
+  const currency = normalizeCurrency(formData.get("currency"));
   if (!name) return;
 
   const trip = await prisma.trip.create({
@@ -38,6 +48,7 @@ export async function createTrip(formData: FormData) {
       name,
       description: description || null,
       partySize,
+      currency,
       inviteCode: nanoid(8),
       createdById: userId,
       members: { create: { userId, role: "ADMIN" } },
@@ -59,11 +70,15 @@ export async function joinTrip(inviteCode: string) {
   redirect(`/trips/${trip.id}`);
 }
 
-export async function updatePartySize(tripId: string, formData: FormData) {
+export async function updateTripSettings(tripId: string, formData: FormData) {
   const userId = await requireUserId();
   await assertMember(tripId, userId);
   const partySize = clampPartySize(formData.get("partySize"));
-  await prisma.trip.update({ where: { id: tripId }, data: { partySize } });
+  const currency = normalizeCurrency(formData.get("currency"));
+  await prisma.trip.update({
+    where: { id: tripId },
+    data: { partySize, currency },
+  });
   revalidatePath(`/trips/${tripId}`, "layout");
 }
 
