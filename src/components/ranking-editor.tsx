@@ -66,7 +66,7 @@ export function RankingEditor({
         return (
           <div
             key={slot.rank}
-            className="rounded-xl border border-slate-200 bg-white p-4"
+            className="rounded-2xl border border-slate-200 bg-white p-4"
           >
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-slate-900">
@@ -77,7 +77,7 @@ export function RankingEditor({
             <select
               value={chosen}
               onChange={(e) => setPick(i, e.target.value)}
-              className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+              className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-blue"
             >
               <option value="">— No pick —</option>
               {options.map((o) => (
@@ -94,7 +94,7 @@ export function RankingEditor({
         <button
           onClick={onSave}
           disabled={pending}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-60"
+          className="btn-brand rounded-full px-5 py-2 text-sm font-semibold transition disabled:opacity-60"
         >
           {pending ? "Saving…" : "Save my ranking"}
         </button>

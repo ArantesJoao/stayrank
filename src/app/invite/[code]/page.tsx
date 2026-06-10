@@ -63,7 +63,7 @@ export default async function InvitePage({
         >
           <button
             type="submit"
-            className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700"
+            className="btn-brand rounded-full px-6 py-2.5 text-sm font-semibold transition"
           >
             Continue with Google
           </button>

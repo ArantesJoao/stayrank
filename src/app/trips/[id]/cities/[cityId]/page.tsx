@@ -63,7 +63,7 @@ export default async function CityPage({
             return (
               <article
                 key={a.id}
-                className="rounded-xl border border-slate-200 bg-white p-4"
+                className="rounded-2xl border border-slate-200 bg-white p-4"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -130,7 +130,7 @@ export default async function CityPage({
                     rows={1}
                     defaultValue={myNote}
                     placeholder="Add your note about this place…"
-                    className="flex-1 resize-y rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                    className="flex-1 resize-y rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-blue"
                   />
                   <button
                     type="submit"
@@ -152,20 +152,20 @@ export default async function CityPage({
         </h2>
         <form
           action={addAccWithCity}
-          className="mt-3 space-y-2 rounded-xl border border-slate-200 bg-white p-4"
+          className="mt-3 space-y-2 rounded-2xl border border-slate-200 bg-white p-4"
         >
           <input
             name="name"
             required
             placeholder="Place name (e.g. Airbnb in Alfama)"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-blue"
           />
           <div className="flex flex-col gap-2 sm:flex-row">
             <input
               name="url"
               type="url"
               placeholder="Link (Airbnb / Booking…)"
-              className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+              className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-blue"
             />
             <input
               name="totalPrice"
@@ -174,18 +174,18 @@ export default async function CityPage({
               step="1"
               placeholder="Total $"
               title="Total price for the whole place/stay"
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900 sm:w-28"
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-blue sm:w-28"
             />
           </div>
           <textarea
             name="note"
             rows={2}
             placeholder="Why this one? (optional note for the group)"
-            className="w-full resize-y rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-900"
+            className="w-full resize-y rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-blue"
           />
           <button
             type="submit"
-            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+            className="btn-brand rounded-full px-5 py-2 text-sm font-semibold transition"
           >
             Add accommodation
           </button>
@@ -193,7 +193,7 @@ export default async function CityPage({
       </section>
 
       {/* Ranking + results — hidden by default */}
-      <details className="group rounded-xl border border-slate-200 bg-white">
+      <details className="group rounded-2xl border border-slate-200 bg-white">
         <summary className="flex cursor-pointer list-none items-center justify-between p-4 text-sm font-semibold text-slate-900">
           <span>🏆 Rank your top 3 &amp; see results</span>
           <span className="text-slate-400 transition group-open:rotate-180">

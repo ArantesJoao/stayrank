@@ -31,7 +31,7 @@ export default async function TripPage({
         )}
       </div>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-5">
+      <section className="rounded-2xl border border-slate-200 bg-white p-5">
         <h2 className="text-sm font-semibold text-slate-900">
           Travelers ({trip.members.length})
         </h2>
@@ -62,7 +62,7 @@ export default async function TripPage({
               min="1"
               max="100"
               defaultValue={trip.partySize}
-              className="w-20 rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-slate-900"
+              className="w-20 rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-brand-blue"
             />
           </label>
           <label className="flex flex-col gap-1 text-xs font-medium text-slate-500">
@@ -70,7 +70,7 @@ export default async function TripPage({
             <select
               name="currency"
               defaultValue={trip.currency}
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-slate-900"
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-brand-blue"
             >
               {CURRENCIES.map((c) => (
                 <option key={c.code} value={c.code}>
@@ -108,7 +108,7 @@ export default async function TripPage({
               <li key={city.id}>
                 <Link
                   href={`/trips/${trip.id}/cities/${city.id}`}
-                  className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 transition hover:border-slate-300 hover:shadow-sm"
+                  className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300 hover:shadow-sm"
                 >
                   <span className="font-medium text-slate-900">{city.name}</span>
                   <span className="text-xs text-slate-400">
@@ -126,11 +126,11 @@ export default async function TripPage({
             name="name"
             required
             placeholder="Add a city (e.g. Lisbon)"
-            className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+            className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-blue"
           />
           <button
             type="submit"
-            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+            className="btn-brand rounded-full px-5 py-2 text-sm font-semibold transition"
           >
             Add
           </button>

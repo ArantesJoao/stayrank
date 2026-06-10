@@ -23,7 +23,7 @@ export default async function TripsPage() {
               <li key={trip.id}>
                 <Link
                   href={`/trips/${trip.id}`}
-                  className="block rounded-xl border border-slate-200 bg-white p-4 transition hover:border-slate-300 hover:shadow-sm"
+                  className="block rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300 hover:shadow-sm"
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-slate-900">
@@ -48,19 +48,19 @@ export default async function TripsPage() {
         )}
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-5">
+      <section className="rounded-2xl border border-slate-200 bg-white p-5">
         <h2 className="text-sm font-semibold text-slate-900">New trip</h2>
         <form action={createTrip} className="mt-3 space-y-3">
           <input
             name="name"
             required
             placeholder="Trip name (e.g. Portugal 2026)"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-blue"
           />
           <input
             name="description"
             placeholder="Optional description"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-blue"
           />
           <div className="flex flex-wrap gap-4">
             <label className="flex items-center gap-2 text-sm text-slate-600">
@@ -71,7 +71,7 @@ export default async function TripsPage() {
                 min="1"
                 max="100"
                 defaultValue={2}
-                className="w-20 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                className="w-20 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-blue"
               />
             </label>
             <label className="flex items-center gap-2 text-sm text-slate-600">
@@ -79,7 +79,7 @@ export default async function TripsPage() {
               <select
                 name="currency"
                 defaultValue="EUR"
-                className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-blue"
               >
                 {CURRENCIES.map((c) => (
                   <option key={c.code} value={c.code}>
@@ -91,7 +91,7 @@ export default async function TripsPage() {
           </div>
           <button
             type="submit"
-            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+            className="btn-brand rounded-full px-5 py-2 text-sm font-semibold transition"
           >
             Create trip
           </button>
