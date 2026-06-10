@@ -94,7 +94,7 @@ export function RankingEditor({
         <button
           onClick={onSave}
           disabled={pending}
-          className="btn-brand rounded-full px-5 py-2 text-sm font-semibold transition disabled:opacity-60"
+          className="btn-brand rounded-lg px-5 py-2.5 text-sm font-medium transition disabled:opacity-60"
         >
           {pending ? "Saving…" : "Save my ranking"}
         </button>

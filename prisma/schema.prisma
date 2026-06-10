@@ -74,6 +74,10 @@ model Trip {
   partySize   Int      @default(1)
   // ISO 4217 currency code used to display prices (e.g. USD, EUR, BRL).
   currency    String   @default("USD")
+  // Cover photo (Unsplash hotlink) + attribution.
+  imageUrl       String?
+  imageCredit    String?
+  imageCreditUrl String?
   createdById String
   createdAt   DateTime @default(now())
 
@@ -101,6 +105,10 @@ model City {
   tripId String
   name   String
   order  Int    @default(0)
+  // Cover photo (Unsplash hotlink) + attribution.
+  imageUrl       String?
+  imageCredit    String?
+  imageCreditUrl String?
 
   trip           Trip            @relation(fields: [tripId], references: [id], onDelete: Cascade)
   accommodations Accommodation[]
@@ -114,6 +122,10 @@ model Accommodation {
   url           String?
   // Total price for the whole place/stay; per-person = totalPrice / trip.partySize.
   totalPrice    Float?
+  // Auto link-preview photo (Microlink) shown on the card.
+  previewImageUrl  String?
+  previewTitle     String?
+  previewFetchedAt DateTime?
   // Normalized key used to dedupe within a city (lowercased url, else name).
   dedupeKey     String
   addedById     String

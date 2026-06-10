@@ -7,8 +7,11 @@ import {
   deleteAccommodation,
   setMyNote,
 } from "@/lib/actions";
+import { setCityImage } from "@/lib/actions";
 import { RankingEditor } from "@/components/ranking-editor";
 import { AvatarStack } from "@/components/avatar-stack";
+import { CoverImage } from "@/components/cover-image";
+import { ImagePicker } from "@/components/image-picker";
 import { formatPrice } from "@/lib/format";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
@@ -33,17 +36,37 @@ export default async function CityPage({
       <div>
         <Link
           href={`/trips/${id}`}
-          className="text-xs text-slate-400 hover:text-slate-600"
+          className="text-xs text-muted hover:text-foreground"
         >
           ← Back to trip
         </Link>
-        <h1 className="mt-1 text-2xl font-bold text-slate-900">{city.name}</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          {city.accommodations.length} option
-          {city.accommodations.length === 1 ? "" : "s"} ·{" "}
-          {city.votersWhoRanked} of {city.memberCount} traveler
-          {city.memberCount === 1 ? "" : "s"} ranked
-        </p>
+        <div className="card mt-2 overflow-hidden">
+          <CoverImage
+            src={city.imageUrl}
+            alt={city.name}
+            credit={city.imageCredit}
+            creditUrl={city.imageCreditUrl}
+            className="aspect-[21/9] w-full"
+          >
+            <div className="absolute right-2 top-2">
+              <ImagePicker
+                onSelect={setCityImage.bind(null, cityId)}
+                onRemove={setCityImage.bind(null, cityId, null)}
+                hasImage={Boolean(city.imageUrl)}
+                defaultQuery={city.name}
+              />
+            </div>
+          </CoverImage>
+          <div className="p-4">
+            <h1 className="text-2xl font-bold tracking-tight">{city.name}</h1>
+            <p className="mt-1 text-sm text-muted">
+              {city.accommodations.length} option
+              {city.accommodations.length === 1 ? "" : "s"} ·{" "}
+              {city.votersWhoRanked} of {city.memberCount} traveler
+              {city.memberCount === 1 ? "" : "s"} ranked
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Default view: accommodation cards with everyone's notes */}
@@ -61,10 +84,15 @@ export default async function CityPage({
             const notes = a.contributors.filter((c) => c.note);
 
             return (
-              <article
-                key={a.id}
-                className="rounded-2xl border border-slate-200 bg-white p-4"
-              >
+              <article key={a.id} className="card overflow-hidden">
+                <div className="flex flex-col sm:flex-row">
+                  <CoverImage
+                    src={a.previewImageUrl}
+                    alt={a.previewTitle ?? a.name}
+                    sizes="(max-width: 640px) 100vw, 192px"
+                    className="aspect-[16/9] w-full sm:aspect-auto sm:w-48 sm:shrink-0"
+                  />
+                  <div className="min-w-0 flex-1 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h3 className="font-semibold text-slate-900">
@@ -139,6 +167,8 @@ export default async function CityPage({
                     {myNote ? "Update note" : "Add note"}
                   </button>
                 </form>
+                  </div>
+                </div>
               </article>
             );
           })
@@ -185,7 +215,7 @@ export default async function CityPage({
           />
           <button
             type="submit"
-            className="btn-brand rounded-full px-5 py-2 text-sm font-semibold transition"
+            className="btn-brand rounded-lg px-5 py-2.5 text-sm font-medium transition"
           >
             Add accommodation
           </button>

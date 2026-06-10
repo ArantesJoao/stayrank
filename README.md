@@ -19,6 +19,10 @@ Next.js 16 (App Router) · Prisma 7 + Postgres (Neon) · Auth.js v5 (Google) · 
 Installable **PWA** (manifest + service worker), branded with the StayRank logo,
 with an auto-generated OpenGraph/Twitter share image.
 
+**Photos:** trips & cities get cover images via an Unsplash picker (auto-default for
+cities by name); accommodations auto-fetch a link-preview image via Microlink. Set
+`UNSPLASH_ACCESS_KEY` (free, unsplash.com/developers) to enable photo search.
+
 ## Local setup
 
 ```bash

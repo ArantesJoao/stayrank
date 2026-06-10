@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { nanoid } from "nanoid";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { searchPhotos, triggerDownload } from "@/lib/unsplash";
+import { fetchLinkPreview } from "@/lib/link-preview";
 
 async function requireUserId() {
   const session = await auth();
@@ -89,8 +91,71 @@ export async function addCity(tripId: string, formData: FormData) {
   if (!name) return;
 
   const count = await prisma.city.count({ where: { tripId } });
-  await prisma.city.create({ data: { tripId, name, order: count } });
+  const city = await prisma.city.create({
+    data: { tripId, name, order: count },
+  });
+
+  // Auto cover from Unsplash by city name (best-effort).
+  const [photo] = await searchPhotos(name, 1);
+  if (photo) {
+    await triggerDownload(photo.downloadLocation);
+    await prisma.city.update({
+      where: { id: city.id },
+      data: {
+        imageUrl: photo.regularUrl,
+        imageCredit: photo.authorName,
+        imageCreditUrl: photo.authorProfileUrl,
+      },
+    });
+  }
+
   revalidatePath(`/trips/${tripId}`);
+}
+
+type SelectedPhoto = {
+  url: string;
+  credit?: string;
+  creditUrl?: string;
+  downloadLocation?: string;
+};
+
+export async function setTripImage(
+  tripId: string,
+  photo: SelectedPhoto | null,
+) {
+  const userId = await requireUserId();
+  await assertMember(tripId, userId);
+  if (photo?.downloadLocation) await triggerDownload(photo.downloadLocation);
+  await prisma.trip.update({
+    where: { id: tripId },
+    data: {
+      imageUrl: photo?.url ?? null,
+      imageCredit: photo?.credit ?? null,
+      imageCreditUrl: photo?.creditUrl ?? null,
+    },
+  });
+  revalidatePath(`/trips/${tripId}`, "layout");
+}
+
+export async function setCityImage(
+  cityId: string,
+  photo: SelectedPhoto | null,
+) {
+  const userId = await requireUserId();
+  const city = await prisma.city.findUnique({ where: { id: cityId } });
+  if (!city) return;
+  await assertMember(city.tripId, userId);
+  if (photo?.downloadLocation) await triggerDownload(photo.downloadLocation);
+  await prisma.city.update({
+    where: { id: cityId },
+    data: {
+      imageUrl: photo?.url ?? null,
+      imageCredit: photo?.credit ?? null,
+      imageCreditUrl: photo?.creditUrl ?? null,
+    },
+  });
+  revalidatePath(`/trips/${city.tripId}/cities/${cityId}`);
+  revalidatePath(`/trips/${city.tripId}`);
 }
 
 export async function addAccommodation(cityId: string, formData: FormData) {
@@ -115,9 +180,12 @@ export async function addAccommodation(cityId: string, formData: FormData) {
     where: { cityId_dedupeKey: { cityId, dedupeKey } },
   });
 
+  // Fetch a link preview photo when a URL is provided (best-effort).
+  const preview = url ? await fetchLinkPreview(url) : {};
+
   if (existing) {
     // Already suggested — record this traveler as a contributor (with their
-    // note) and backfill any missing url/price.
+    // note) and backfill any missing url/price/preview.
     await prisma.$transaction([
       prisma.accommodationContributor.upsert({
         where: {
@@ -131,6 +199,13 @@ export async function addAccommodation(cityId: string, formData: FormData) {
         data: {
           url: existing.url ?? (url || null),
           totalPrice: existing.totalPrice ?? totalPrice,
+          previewImageUrl: existing.previewImageUrl ?? preview.imageUrl ?? null,
+          previewTitle: existing.previewTitle ?? preview.title ?? null,
+          previewFetchedAt: existing.previewImageUrl
+            ? existing.previewFetchedAt
+            : preview.imageUrl
+              ? new Date()
+              : existing.previewFetchedAt,
         },
       }),
     ]);
@@ -141,6 +216,9 @@ export async function addAccommodation(cityId: string, formData: FormData) {
         name,
         url: url || null,
         totalPrice,
+        previewImageUrl: preview.imageUrl ?? null,
+        previewTitle: preview.title ?? null,
+        previewFetchedAt: preview.imageUrl ? new Date() : null,
         dedupeKey,
         addedById: userId,
         contributors: { create: { userId, note } },
