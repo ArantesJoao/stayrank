@@ -5,6 +5,7 @@ import { getCityForUser } from "@/lib/data";
 import { addAccommodation, deleteAccommodation } from "@/lib/actions";
 import { RankingEditor } from "@/components/ranking-editor";
 import { AvatarStack } from "@/components/avatar-stack";
+import { formatPrice } from "@/lib/format";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
@@ -20,6 +21,7 @@ export default async function CityPage({
   if (!city) notFound();
 
   const addAccWithCity = addAccommodation.bind(null, cityId);
+  const partySize = city.trip.partySize;
 
   // Notes by accommodation for the discussion section.
   const notesByAcc = new Map<string, { name: string; note: string; rank: number }[]>();
@@ -80,8 +82,10 @@ export default async function CityPage({
                       </p>
                       <p className="text-xs text-slate-400">
                         {entry.voteCount} vote{entry.voteCount === 1 ? "" : "s"}
-                        {entry.accommodation.pricePerNight != null &&
-                          ` · $${entry.accommodation.pricePerNight}/night`}
+                        {formatPrice(
+                          entry.accommodation.totalPrice,
+                          partySize,
+                        ) && ` · ${formatPrice(entry.accommodation.totalPrice, partySize)}`}
                       </p>
                     </div>
                   </div>
@@ -167,7 +171,7 @@ export default async function CityPage({
                         size={20}
                       />
                       <span className="text-xs text-slate-400">
-                        {a.pricePerNight != null && `$${a.pricePerNight}/night`}
+                        {formatPrice(a.totalPrice, partySize)}
                       </span>
                     </div>
                   </div>
@@ -203,11 +207,12 @@ export default async function CityPage({
               className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
             />
             <input
-              name="pricePerNight"
+              name="totalPrice"
               type="number"
               min="0"
               step="1"
-              placeholder="$/night"
+              placeholder="Total $"
+              title="Total price for the whole place/stay"
               className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900 sm:w-28"
             />
           </div>

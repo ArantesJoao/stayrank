@@ -61,6 +61,17 @@ export default async function TripsPage() {
             placeholder="Optional description"
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
           />
+          <label className="flex items-center gap-2 text-sm text-slate-600">
+            <span className="shrink-0">People splitting the cost</span>
+            <input
+              name="partySize"
+              type="number"
+              min="1"
+              max="100"
+              defaultValue={2}
+              className="w-20 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+            />
+          </label>
           <button
             type="submit"
             className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"

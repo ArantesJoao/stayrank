@@ -12,6 +12,12 @@ async function requireUserId() {
   return session.user.id;
 }
 
+function clampPartySize(raw: FormDataEntryValue | null) {
+  const n = Math.round(Number(String(raw ?? "").trim()));
+  if (!Number.isFinite(n) || n < 1) return 1;
+  return Math.min(n, 100);
+}
+
 async function assertMember(tripId: string, userId: string) {
   const member = await prisma.tripMember.findUnique({
     where: { tripId_userId: { tripId, userId } },
@@ -24,12 +30,14 @@ export async function createTrip(formData: FormData) {
   const userId = await requireUserId();
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
+  const partySize = clampPartySize(formData.get("partySize"));
   if (!name) return;
 
   const trip = await prisma.trip.create({
     data: {
       name,
       description: description || null,
+      partySize,
       inviteCode: nanoid(8),
       createdById: userId,
       members: { create: { userId, role: "ADMIN" } },
@@ -51,6 +59,14 @@ export async function joinTrip(inviteCode: string) {
   redirect(`/trips/${trip.id}`);
 }
 
+export async function updatePartySize(tripId: string, formData: FormData) {
+  const userId = await requireUserId();
+  await assertMember(tripId, userId);
+  const partySize = clampPartySize(formData.get("partySize"));
+  await prisma.trip.update({ where: { id: tripId }, data: { partySize } });
+  revalidatePath(`/trips/${tripId}`, "layout");
+}
+
 export async function addCity(tripId: string, formData: FormData) {
   const userId = await requireUserId();
   await assertMember(tripId, userId);
@@ -70,10 +86,11 @@ export async function addAccommodation(cityId: string, formData: FormData) {
 
   const name = String(formData.get("name") ?? "").trim();
   const url = String(formData.get("url") ?? "").trim();
-  const priceRaw = String(formData.get("pricePerNight") ?? "").trim();
+  const priceRaw = String(formData.get("totalPrice") ?? "").trim();
   if (!name) return;
   const price = priceRaw ? Number(priceRaw) : null;
-  const pricePerNight = price != null && !Number.isNaN(price) ? price : null;
+  const totalPrice =
+    price != null && !Number.isNaN(price) && price >= 0 ? price : null;
 
   // Dedupe within the city: same link (preferred) or same name => one card.
   const dedupeKey = (url || name).toLowerCase();
@@ -97,7 +114,7 @@ export async function addAccommodation(cityId: string, formData: FormData) {
         where: { id: existing.id },
         data: {
           url: existing.url ?? (url || null),
-          pricePerNight: existing.pricePerNight ?? pricePerNight,
+          totalPrice: existing.totalPrice ?? totalPrice,
         },
       }),
     ]);
@@ -107,7 +124,7 @@ export async function addAccommodation(cityId: string, formData: FormData) {
         cityId,
         name,
         url: url || null,
-        pricePerNight,
+        totalPrice,
         dedupeKey,
         addedById: userId,
         contributors: { create: { userId } },

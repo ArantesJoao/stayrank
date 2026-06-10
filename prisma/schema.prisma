@@ -70,6 +70,8 @@ model Trip {
   name        String
   description String?
   inviteCode  String   @unique
+  // How many people are splitting the cost (may differ from signed-up members).
+  partySize   Int      @default(1)
   createdById String
   createdAt   DateTime @default(now())
 
@@ -108,7 +110,8 @@ model Accommodation {
   cityId        String
   name          String
   url           String?
-  pricePerNight Float?
+  // Total price for the whole place/stay; per-person = totalPrice / trip.partySize.
+  totalPrice    Float?
   // Normalized key used to dedupe within a city (lowercased url, else name).
   dedupeKey     String
   addedById     String

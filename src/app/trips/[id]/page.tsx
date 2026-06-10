@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { getTripForUser } from "@/lib/data";
-import { addCity } from "@/lib/actions";
+import { addCity, updatePartySize } from "@/lib/actions";
 import { InviteLink } from "@/components/invite-link";
 
 export default async function TripPage({
@@ -16,6 +16,7 @@ export default async function TripPage({
   if (!trip) notFound();
 
   const addCityWithTrip = addCity.bind(null, trip.id);
+  const updatePartySizeWithTrip = updatePartySize.bind(null, trip.id);
 
   return (
     <div className="space-y-8">
@@ -48,7 +49,33 @@ export default async function TripPage({
             </span>
           ))}
         </div>
-        <div className="mt-4">
+        <form
+          action={updatePartySizeWithTrip}
+          className="mt-4 flex flex-wrap items-center gap-2"
+        >
+          <label className="text-xs font-medium text-slate-500">
+            People splitting the cost
+          </label>
+          <input
+            name="partySize"
+            type="number"
+            min="1"
+            max="100"
+            defaultValue={trip.partySize}
+            className="w-20 rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-slate-900"
+          />
+          <button
+            type="submit"
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-400"
+          >
+            Update
+          </button>
+          <span className="text-xs text-slate-400">
+            Used to split prices per person.
+          </span>
+        </form>
+
+        <div className="mt-4 border-t border-slate-100 pt-4">
           <p className="mb-1.5 text-xs font-medium text-slate-500">
             Invite friends with this link
           </p>
