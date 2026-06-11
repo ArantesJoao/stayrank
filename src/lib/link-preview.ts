@@ -6,13 +6,15 @@ export type LinkPreview = { imageUrl?: string; title?: string };
 export async function fetchLinkPreview(url: string): Promise<LinkPreview> {
   if (!/^https?:\/\//i.test(url)) return {};
   try {
-    const api = new URL("https://api.microlink.io");
+    const key = process.env.MICROLINK_API_KEY;
+    // Authenticated requests must use the pro endpoint; free uses the public one.
+    const api = new URL(
+      key ? "https://pro.microlink.io" : "https://api.microlink.io",
+    );
     api.searchParams.set("url", url);
 
     const headers: Record<string, string> = {};
-    if (process.env.MICROLINK_API_KEY) {
-      headers["x-api-key"] = process.env.MICROLINK_API_KEY;
-    }
+    if (key) headers["x-api-key"] = key;
 
     const res = await fetch(api, {
       headers,
