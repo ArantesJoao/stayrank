@@ -95,7 +95,7 @@ export default async function TripPage({
 
       {/* Cities (main) + sidebar (travelers, invite, settings) */}
       <div className="grid gap-6 lg:grid-cols-3">
-        <section className="space-y-4 lg:col-span-2">
+        <section className="min-w-0 space-y-4 lg:col-span-2">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">Cities</h2>
           </div>
@@ -144,10 +144,12 @@ export default async function TripPage({
                   </div>
                   <Link
                     href={`/trips/${trip.id}/cities/${city.id}`}
-                    className="flex items-center justify-between px-4 pb-3 pt-4"
+                    className="flex items-center justify-between gap-2 px-4 pb-3 pt-4"
                   >
-                    <span className="font-semibold">{city.name}</span>
-                    <span className="text-xs text-muted">
+                    <span className="min-w-0 truncate font-semibold">
+                      {city.name}
+                    </span>
+                    <span className="shrink-0 text-xs text-muted">
                       {city._count.accommodations} option
                       {city._count.accommodations === 1 ? "" : "s"}
                     </span>
@@ -182,7 +184,7 @@ export default async function TripPage({
           </form>
         </section>
 
-        <aside className="space-y-6">
+        <aside className="min-w-0 space-y-6">
           {/* Travelers */}
           <section className="card p-5">
             <h2 className="text-sm font-semibold">
