@@ -122,10 +122,11 @@ model Accommodation {
   url           String?
   // Total price for the whole place/stay; per-person = totalPrice / trip.partySize.
   totalPrice    Float?
-  // Auto link-preview photo (Microlink) shown on the card.
-  previewImageUrl  String?
-  previewTitle     String?
-  previewFetchedAt DateTime?
+  // Auto link-preview (Microlink) snapshot shown on the card.
+  previewImageUrl   String?
+  previewTitle      String?
+  previewDescription String?
+  previewFetchedAt  DateTime?
   // Normalized key used to dedupe within a city (lowercased url, else name).
   dedupeKey     String
   addedById     String
@@ -170,4 +171,14 @@ model Ranking {
   // can occupy at most one slot per user per city.
   @@unique([userId, cityId, rank])
   @@unique([userId, cityId, accommodationId])
+}
+
+// Global cache of Microlink link previews, keyed by URL, so we fetch any given
+// URL at most once (across all trips/cities) and never re-hit the API limit.
+model LinkPreviewCache {
+  url         String   @id
+  imageUrl    String?
+  title       String?
+  description String?
+  fetchedAt   DateTime @default(now())
 }

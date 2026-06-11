@@ -6,7 +6,7 @@ import { nanoid } from "nanoid";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { searchPhotos, triggerDownload } from "@/lib/unsplash";
-import { fetchLinkPreview } from "@/lib/link-preview";
+import { getCachedLinkPreview } from "@/lib/link-preview";
 
 async function requireUserId() {
   const session = await auth();
@@ -180,12 +180,12 @@ export async function addAccommodation(cityId: string, formData: FormData) {
     where: { cityId_dedupeKey: { cityId, dedupeKey } },
   });
 
-  // Fetch a link preview photo when a URL is provided (best-effort).
-  const preview = url ? await fetchLinkPreview(url) : {};
-
   if (existing) {
     // Already suggested — record this traveler as a contributor (with their
-    // note) and backfill any missing url/price/preview.
+    // note) and backfill the preview only if it's still missing (cached fetch).
+    const needsPreview = url && !existing.previewImageUrl;
+    const preview = needsPreview ? await getCachedLinkPreview(url) : {};
+
     await prisma.$transaction([
       prisma.accommodationContributor.upsert({
         where: {
@@ -201,15 +201,18 @@ export async function addAccommodation(cityId: string, formData: FormData) {
           totalPrice: existing.totalPrice ?? totalPrice,
           previewImageUrl: existing.previewImageUrl ?? preview.imageUrl ?? null,
           previewTitle: existing.previewTitle ?? preview.title ?? null,
-          previewFetchedAt: existing.previewImageUrl
-            ? existing.previewFetchedAt
-            : preview.imageUrl
-              ? new Date()
+          previewDescription:
+            existing.previewDescription ?? preview.description ?? null,
+          previewFetchedAt:
+            existing.previewImageUrl || preview.imageUrl
+              ? (existing.previewFetchedAt ?? new Date())
               : existing.previewFetchedAt,
         },
       }),
     ]);
   } else {
+    // New accommodation — fetch (cached) preview when a URL is provided.
+    const preview = url ? await getCachedLinkPreview(url) : {};
     await prisma.accommodation.create({
       data: {
         cityId,
@@ -218,6 +221,7 @@ export async function addAccommodation(cityId: string, formData: FormData) {
         totalPrice,
         previewImageUrl: preview.imageUrl ?? null,
         previewTitle: preview.title ?? null,
+        previewDescription: preview.description ?? null,
         previewFetchedAt: preview.imageUrl ? new Date() : null,
         dedupeKey,
         addedById: userId,
