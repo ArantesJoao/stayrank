@@ -145,12 +145,13 @@ model Accommodation {
   @@unique([cityId, dedupeKey])
 }
 
-// Travelers who suggested a given accommodation (avatar stack + their note).
+// Travelers who suggested a given accommodation (avatar stack + their pros/cons).
 model AccommodationContributor {
   id              String   @id @default(cuid())
   accommodationId String
   userId          String
-  note            String?
+  pros            String?
+  cons            String?
   // True when this person suggested the place (vs. only leaving a note on
   // someone else's suggestion). Drives the "Added by" avatar stack.
   isAuthor        Boolean  @default(false)

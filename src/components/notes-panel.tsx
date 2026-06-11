@@ -2,23 +2,24 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDown, MessageSquare } from "lucide-react";
+import { ChevronDown, MessageSquare, ThumbsDown, ThumbsUp } from "lucide-react";
 import { AvatarStack } from "@/components/avatar-stack";
 
 type Note = {
   id: string;
   authorName: string | null;
   authorImage: string | null;
-  note: string;
+  pros: string | null;
+  cons: string | null;
 };
 
 const POPOVER_WIDTH = 288; // w-72
 
 /**
- * Travellers' notes shown behind a compact "N notes" pill so every card keeps
- * the same height. Clicking opens a floating popover (rendered in a portal so
- * it isn't clipped by the card's overflow) that scales + fades in, and the list
- * inside scrolls when there are many notes.
+ * Travellers' pros & cons shown behind a compact "N notes" pill so every card
+ * keeps the same height. Clicking opens a floating popover (rendered in a portal
+ * so it isn't clipped by the card's overflow) that scales + fades in, and the
+ * list inside scrolls when there are many notes.
  */
 export function NotesPanel({ notes }: { notes: Note[] }) {
   const [open, setOpen] = useState(false);
@@ -121,11 +122,27 @@ export function NotesPanel({ notes }: { notes: Note[] }) {
                     key={n.id}
                     className="rounded-lg bg-slate-50 px-3 py-2 text-sm"
                   >
-                    <span className="font-semibold text-slate-900">
+                    <p className="font-semibold text-slate-900">
                       {n.authorName ?? "Someone"}
-                    </span>
-                    <span className="text-slate-400"> — </span>
-                    <span className="text-slate-600">{n.note}</span>
+                    </p>
+                    {n.pros && (
+                      <p className="mt-1 flex items-start gap-1.5 text-slate-600">
+                        <ThumbsUp
+                          aria-hidden
+                          className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600"
+                        />
+                        <span>{n.pros}</span>
+                      </p>
+                    )}
+                    {n.cons && (
+                      <p className="mt-1 flex items-start gap-1.5 text-slate-600">
+                        <ThumbsDown
+                          aria-hidden
+                          className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-600"
+                        />
+                        <span>{n.cons}</span>
+                      </p>
+                    )}
                   </li>
                 ))}
               </ul>

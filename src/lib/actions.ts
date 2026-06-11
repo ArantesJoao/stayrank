@@ -170,7 +170,8 @@ export async function addAccommodation(cityId: string, formData: FormData) {
 
   const name = String(formData.get("name") ?? "").trim();
   const url = String(formData.get("url") ?? "").trim();
-  const note = String(formData.get("note") ?? "").trim() || null;
+  const pros = String(formData.get("pros") ?? "").trim() || null;
+  const cons = String(formData.get("cons") ?? "").trim() || null;
   const priceRaw = String(formData.get("totalPrice") ?? "").trim();
   if (!name) return;
   const price = priceRaw ? Number(priceRaw) : null;
@@ -220,9 +221,20 @@ export async function addAccommodation(cityId: string, formData: FormData) {
         where: {
           accommodationId_userId: { accommodationId: existing.id, userId },
         },
-        create: { accommodationId: existing.id, userId, note, isAuthor: true },
-        // Re-adding promotes a note-only contributor to a co-author.
-        update: { isAuthor: true, ...(note ? { note } : {}) },
+        create: {
+          accommodationId: existing.id,
+          userId,
+          pros,
+          cons,
+          isAuthor: true,
+        },
+        // Re-adding promotes a note-only contributor to a co-author, and
+        // backfills pros/cons if this time they wrote some.
+        update: {
+          isAuthor: true,
+          ...(pros ? { pros } : {}),
+          ...(cons ? { cons } : {}),
+        },
       }),
       prisma.accommodation.update({
         where: { id: existing.id },
@@ -250,7 +262,7 @@ export async function addAccommodation(cityId: string, formData: FormData) {
         previewStatus: isScrapableListingUrl(url) ? "PENDING" : "DONE",
         dedupeKey,
         addedById: userId,
-        contributors: { create: { userId, note, isAuthor: true } },
+        contributors: { create: { userId, pros, cons, isAuthor: true } },
       },
     });
   }
@@ -262,8 +274,8 @@ export async function addAccommodation(cityId: string, formData: FormData) {
   revalidatePath(`/trips/${city.tripId}/cities/${cityId}`);
 }
 
-/** Add or edit the current user's note on an accommodation (makes them a contributor). */
-export async function setMyNote(accommodationId: string, formData: FormData) {
+/** Add or edit the current user's pros/cons on an accommodation (makes them a contributor). */
+export async function setMyNotes(accommodationId: string, formData: FormData) {
   const userId = await requireUserId();
   const acc = await prisma.accommodation.findUnique({
     where: { id: accommodationId },
@@ -272,11 +284,12 @@ export async function setMyNote(accommodationId: string, formData: FormData) {
   if (!acc) return;
   await assertMember(acc.city.tripId, userId);
 
-  const note = String(formData.get("note") ?? "").trim() || null;
+  const pros = String(formData.get("pros") ?? "").trim() || null;
+  const cons = String(formData.get("cons") ?? "").trim() || null;
   await prisma.accommodationContributor.upsert({
     where: { accommodationId_userId: { accommodationId, userId } },
-    create: { accommodationId, userId, note },
-    update: { note },
+    create: { accommodationId, userId, pros, cons },
+    update: { pros, cons },
   });
   revalidatePath(`/trips/${acc.city.tripId}/cities/${acc.cityId}`);
 }

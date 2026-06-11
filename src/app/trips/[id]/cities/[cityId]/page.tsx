@@ -6,7 +6,7 @@ import { getCityForUser } from "@/lib/data";
 import {
   addAccommodation,
   deleteAccommodation,
-  setMyNote,
+  setMyNotes,
 } from "@/lib/actions";
 import { setCityImage } from "@/lib/actions";
 import { NoteEditor } from "@/components/note-editor";
@@ -132,10 +132,11 @@ export default async function CityPage({
             </div>
             {city.accommodations.map((a) => {
             const del = deleteAccommodation.bind(null, a.id);
-            const saveNote = setMyNote.bind(null, a.id);
-            const myNote =
-              a.contributors.find((c) => c.userId === userId)?.note ?? "";
-            const notes = a.contributors.filter((c) => c.note);
+            const saveNotes = setMyNotes.bind(null, a.id);
+            const mine = a.contributors.find((c) => c.userId === userId);
+            const myPros = mine?.pros ?? "";
+            const myCons = mine?.cons ?? "";
+            const notes = a.contributors.filter((c) => c.pros || c.cons);
             // Everyone who suggested this place (one card may be co-suggested
             // when two people add the same listing). Fall back to the original
             // author for older rows with no flagged contributors.
@@ -247,19 +248,24 @@ export default async function CityPage({
                     {/* Inline ranking — pick this place as your 1st/2nd/3rd */}
                     <RankButtons accommodationId={a.id} />
 
-                    {/* Everyone's notes — collapsed by default so every card
-                        keeps the same height; expands + scrolls in place */}
+                    {/* Everyone's pros & cons — collapsed by default so every
+                        card keeps the same height; expands + scrolls in place */}
                     <NotesPanel
                       notes={notes.map((c) => ({
                         id: c.id,
                         authorName: c.user.name,
                         authorImage: c.user.image,
-                        note: c.note as string,
+                        pros: c.pros,
+                        cons: c.cons,
                       }))}
                     />
 
-                    {/* Your own note — collapses + clears on save */}
-                    <NoteEditor action={saveNote} initialNote={myNote} />
+                    {/* Your own pros & cons — collapses + clears on save */}
+                    <NoteEditor
+                      action={saveNotes}
+                      initialPros={myPros}
+                      initialCons={myCons}
+                    />
                   </div>
                 </div>
               </article>
@@ -300,12 +306,20 @@ export default async function CityPage({
               />
             </div>
           </div>
-          <textarea
-            name="note"
-            rows={2}
-            placeholder="Why this one? (optional note for the group)"
-            className="w-full resize-y rounded-lg border border-hairline px-3 py-2 text-sm outline-none focus:border-brand-blue"
-          />
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <textarea
+              name="pros"
+              rows={2}
+              placeholder="Pros — what's great about it? (optional)"
+              className="flex-1 resize-y rounded-lg border border-hairline px-3 py-2 text-sm outline-none focus:border-brand-blue"
+            />
+            <textarea
+              name="cons"
+              rows={2}
+              placeholder="Cons — any downsides? (optional)"
+              className="flex-1 resize-y rounded-lg border border-hairline px-3 py-2 text-sm outline-none focus:border-brand-blue"
+            />
+          </div>
           <SubmitButton
             pendingText="Adding…"
             className="btn-brand rounded-lg px-5 py-2.5 text-sm font-medium transition"

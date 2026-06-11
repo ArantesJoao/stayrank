@@ -27,7 +27,7 @@ export default async function Home() {
           priority
           className="h-8 w-auto"
         />
-        <SignInButton className="inline-flex items-center gap-2 rounded-full border border-hairline px-4 py-2 text-sm font-medium text-foreground transition hover:border-slate-400" />
+        <SignInButton className="inline-flex items-center gap-2 rounded-full border border-hairline bg-white px-4 py-2 text-sm font-medium text-foreground shadow-sm transition hover:border-slate-400 hover:shadow" />
       </header>
 
       {/* Hero: copy left, product preview right */}
