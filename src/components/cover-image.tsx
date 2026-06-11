@@ -59,7 +59,7 @@ export function CoverImage({
           href={creditUrl ? withUtm(creditUrl) : undefined}
           target="_blank"
           rel="noopener noreferrer"
-          className="absolute bottom-1 right-1 rounded bg-black/40 px-1.5 py-0.5 text-[10px] text-white/90 backdrop-blur-sm hover:text-white"
+          className="absolute bottom-1 right-1 z-20 rounded bg-black/40 px-1.5 py-0.5 text-[10px] text-white/90 backdrop-blur-sm hover:text-white"
         >
           Photo: {credit}
         </a>

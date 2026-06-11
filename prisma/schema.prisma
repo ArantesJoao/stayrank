@@ -151,6 +151,9 @@ model AccommodationContributor {
   accommodationId String
   userId          String
   note            String?
+  // True when this person suggested the place (vs. only leaving a note on
+  // someone else's suggestion). Drives the "Added by" avatar stack.
+  isAuthor        Boolean  @default(false)
   createdAt       DateTime @default(now())
 
   accommodation Accommodation @relation(fields: [accommodationId], references: [id], onDelete: Cascade)

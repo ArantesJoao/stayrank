@@ -10,6 +10,12 @@ import {
 } from "@/lib/actions";
 import { setCityImage } from "@/lib/actions";
 import { NoteEditor } from "@/components/note-editor";
+import { NotesPanel } from "@/components/notes-panel";
+import {
+  RankingProvider,
+  RankingStatus,
+  RankButtons,
+} from "@/components/ranking-controls";
 import { AvatarStack } from "@/components/avatar-stack";
 import { CoverImage } from "@/components/cover-image";
 import { ImagePicker } from "@/components/image-picker";
@@ -26,6 +32,15 @@ import { faviconUrl, listingSource } from "@/lib/listing";
 // ~60s; give the function room to finish. Raise on Vercel Pro (up to 300) for
 // the most reliable Booking previews — Hobby caps this at 60.
 export const maxDuration = 60;
+
+/** "Ana", "Ana & Bob", "Ana, Bob & Carol", "Ana, Bob & 2 others". */
+function formatAuthors(names: string[]): string {
+  if (names.length === 0) return "someone";
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} & ${names[1]}`;
+  const rest = names.length - 2;
+  return `${names[0]}, ${names[1]} & ${rest} other${rest === 1 ? "" : "s"}`;
+}
 
 export default async function CityPage({
   params,
@@ -86,28 +101,48 @@ export default async function CityPage({
         </div>
       </div>
 
-      {/* Primary CTA → the dedicated ranking screen */}
+      {/* Secondary CTA → the leaderboard screen (ranking now happens inline) */}
       <Link
         href={`/trips/${id}/cities/${cityId}/rank`}
         className="btn-brand flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-semibold shadow-md ring-1 ring-brand-blue/20 transition hover:shadow-lg"
       >
         <Trophy aria-hidden className="h-4 w-4" />
-        Rank your top 3 &amp; see results
+        See the leaderboard
       </Link>
 
-      {/* Default view: accommodation cards with everyone's notes */}
+      {/* Default view: accommodation cards with inline ranking + everyone's notes */}
       <section className="space-y-3">
         {city.accommodations.length === 0 ? (
           <p className="text-sm text-slate-500">
             No accommodations yet — add the first one below.
           </p>
         ) : (
-          city.accommodations.map((a) => {
+          <RankingProvider
+            cityId={cityId}
+            initial={city.myRankings.map((r) => ({
+              rank: r.rank,
+              accommodationId: r.accommodationId,
+            }))}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm text-muted">
+                Tap a medal to set your top 3 — it saves automatically.
+              </p>
+              <RankingStatus />
+            </div>
+            {city.accommodations.map((a) => {
             const del = deleteAccommodation.bind(null, a.id);
             const saveNote = setMyNote.bind(null, a.id);
             const myNote =
               a.contributors.find((c) => c.userId === userId)?.note ?? "";
             const notes = a.contributors.filter((c) => c.note);
+            // Everyone who suggested this place (one card may be co-suggested
+            // when two people add the same listing). Fall back to the original
+            // author for older rows with no flagged contributors.
+            const authors = a.contributors
+              .filter((c) => c.isAuthor)
+              .map((c) => c.user);
+            const authorPeople = authors.length > 0 ? authors : [a.addedBy];
             const price = priceBreakdown(a.totalPrice, partySize, currency);
             const source = listingSource(a.url);
 
@@ -181,12 +216,16 @@ export default async function CityPage({
                         )}
                         <div className="mt-2 flex items-center gap-2 text-xs text-slate-500">
                           <AvatarStack
-                            people={[
-                              { name: a.addedBy.name, image: a.addedBy.image },
-                            ]}
+                            people={authorPeople.map((u) => ({
+                              name: u.name,
+                              image: u.image,
+                            }))}
                             size={20}
                           />
-                          Added by {a.addedBy.name ?? "someone"}
+                          Added by{" "}
+                          {formatAuthors(
+                            authorPeople.map((u) => u.name ?? "someone"),
+                          )}
                         </div>
                       </div>
 
@@ -205,23 +244,19 @@ export default async function CityPage({
                       )}
                     </div>
 
-                    {/* Everyone's notes */}
-                    {notes.length > 0 && (
-                      <ul className="mt-3 space-y-2">
-                        {notes.map((c) => (
-                          <li
-                            key={c.id}
-                            className="rounded-lg bg-slate-50 px-3 py-2 text-sm"
-                          >
-                            <span className="font-semibold text-slate-900">
-                              {c.user.name ?? "Someone"}
-                            </span>
-                            <span className="text-slate-400"> — </span>
-                            <span className="text-slate-600">{c.note}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                    {/* Inline ranking — pick this place as your 1st/2nd/3rd */}
+                    <RankButtons accommodationId={a.id} />
+
+                    {/* Everyone's notes — collapsed by default so every card
+                        keeps the same height; expands + scrolls in place */}
+                    <NotesPanel
+                      notes={notes.map((c) => ({
+                        id: c.id,
+                        authorName: c.user.name,
+                        authorImage: c.user.image,
+                        note: c.note as string,
+                      }))}
+                    />
 
                     {/* Your own note — collapses + clears on save */}
                     <NoteEditor action={saveNote} initialNote={myNote} />
@@ -229,7 +264,8 @@ export default async function CityPage({
                 </div>
               </article>
             );
-          })
+            })}
+          </RankingProvider>
         )}
       </section>
 

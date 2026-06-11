@@ -1,15 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
+
+const subscribe = () => () => {};
+
+/**
+ * The page's origin, read without a setState-in-effect cascade. On the server
+ * (and the first client paint) the snapshot is "", so we render the relative
+ * path; once hydrated, it resolves to the absolute, shareable URL.
+ */
+function useOrigin() {
+  return useSyncExternalStore(
+    subscribe,
+    () => window.location.origin,
+    () => "",
+  );
+}
 
 export function InviteLink({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
-  const [url, setUrl] = useState(`/invite/${code}`);
-
-  // Resolve to an absolute, shareable URL once mounted on the client.
-  useEffect(() => {
-    setUrl(`${window.location.origin}/invite/${code}`);
-  }, [code]);
+  const origin = useOrigin();
+  const url = origin ? `${origin}/invite/${code}` : `/invite/${code}`;
 
   async function copy() {
     try {

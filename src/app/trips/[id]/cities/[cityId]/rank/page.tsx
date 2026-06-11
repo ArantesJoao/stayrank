@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Medal } from "lucide-react";
 import { auth } from "@/auth";
 import { getCityForUser } from "@/lib/data";
-import { RankingEditor } from "@/components/ranking-editor";
 
 // Gold / silver / bronze tints for the top-3 leaderboard medals.
 const MEDAL_CLASSES = ["text-yellow-500", "text-slate-400", "text-amber-700"];
@@ -29,35 +28,18 @@ export default async function RankCityPage({
           <ArrowLeft aria-hidden className="h-3.5 w-3.5" />
           Back to {city.name}
         </Link>
-        <h1 className="mt-2 text-2xl font-bold tracking-tight">
-          Rank your top 3
-        </h1>
+        <h1 className="mt-2 text-2xl font-bold tracking-tight">Leaderboard</h1>
         <p className="mt-1 text-sm text-muted">
-          {city.name} — 1st = 3 pts, 2nd = 2, 3rd = 1.
+          {city.name} — 1st = 3 pts, 2nd = 2, 3rd = 1. Set your own picks back on
+          the city page.
         </p>
       </div>
 
-      {/* Your ranking */}
-      <section>
-        <h2 className="text-sm font-semibold text-slate-900">Your picks</h2>
-        <div className="mt-3">
-          <RankingEditor
-            cityId={cityId}
-            options={city.accommodations.map((a) => ({
-              id: a.id,
-              name: a.name,
-            }))}
-            initial={city.myRankings.map((r) => ({
-              rank: r.rank,
-              accommodationId: r.accommodationId,
-            }))}
-          />
-        </div>
-      </section>
-
       {/* Leaderboard */}
       <section>
-        <h2 className="text-sm font-semibold text-slate-900">Leaderboard</h2>
+        <h2 className="text-sm font-semibold text-slate-900">
+          Current standings
+        </h2>
         {city.leaderboard.every((e) => e.points === 0) ? (
           <p className="mt-2 text-sm text-slate-500">
             No votes yet — be the first to rank above.

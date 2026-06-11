@@ -10,6 +10,7 @@ import {
   isScrapableListingUrl,
   schedulePreviewBackfills,
 } from "@/lib/accommodation-preview";
+import { listingKey } from "@/lib/listing";
 
 async function requireUserId() {
   const session = await auth();
@@ -176,12 +177,27 @@ export async function addAccommodation(cityId: string, formData: FormData) {
   const totalPrice =
     price != null && !Number.isNaN(price) && price >= 0 ? price : null;
 
-  // Dedupe within the city: same link (preferred) or same name => one card.
-  const dedupeKey = (url || name).toLowerCase();
-
-  const existing = await prisma.accommodation.findUnique({
-    where: { cityId_dedupeKey: { cityId, dedupeKey } },
+  // Dedupe within the city: the same listing (matched on the normalized URL
+  // identity, so different links to one place collapse) or the same name => one
+  // card. We scan the city rather than rely solely on the stored key so older
+  // rows (saved before URL-normalization) still match.
+  const key = listingKey(url) ?? name.toLowerCase();
+  const cityAccommodations = await prisma.accommodation.findMany({
+    where: { cityId },
+    select: {
+      id: true,
+      url: true,
+      dedupeKey: true,
+      totalPrice: true,
+      previewImageUrl: true,
+      previewStatus: true,
+      previewAttemptedAt: true,
+    },
   });
+  const dedupeKey = key;
+  const existing = cityAccommodations.find(
+    (a) => (a.url && listingKey(a.url) === key) || a.dedupeKey === key,
+  );
 
   // The accommodation that ends up needing a background image scrape (if any).
   let toBackfill: {
@@ -204,8 +220,9 @@ export async function addAccommodation(cityId: string, formData: FormData) {
         where: {
           accommodationId_userId: { accommodationId: existing.id, userId },
         },
-        create: { accommodationId: existing.id, userId, note },
-        update: note ? { note } : {},
+        create: { accommodationId: existing.id, userId, note, isAuthor: true },
+        // Re-adding promotes a note-only contributor to a co-author.
+        update: { isAuthor: true, ...(note ? { note } : {}) },
       }),
       prisma.accommodation.update({
         where: { id: existing.id },
@@ -233,7 +250,7 @@ export async function addAccommodation(cityId: string, formData: FormData) {
         previewStatus: isScrapableListingUrl(url) ? "PENDING" : "DONE",
         dedupeKey,
         addedById: userId,
-        contributors: { create: { userId, note } },
+        contributors: { create: { userId, note, isAuthor: true } },
       },
     });
   }

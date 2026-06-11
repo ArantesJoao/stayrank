@@ -29,7 +29,6 @@ export default function OpengraphImage() {
           fontFamily: "sans-serif",
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={logoSrc} alt="StayRank" width={620} height={179} />
         <div
           style={{

@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { auth } from "@/auth";
 import { getUserTrips } from "@/lib/data";
 import { createTrip } from "@/lib/actions";
 import { CURRENCIES } from "@/lib/format";
 import { CoverImage } from "@/components/cover-image";
+import { CardLink } from "@/components/card-link";
 import { SubmitButton } from "@/components/submit-button";
 
 export default async function TripsPage() {
@@ -22,36 +22,35 @@ export default async function TripsPage() {
         ) : (
           <ul className="mt-5 grid gap-4 sm:grid-cols-2">
             {trips.map((trip) => (
-              <li key={trip.id}>
-                <Link
-                  href={`/trips/${trip.id}`}
-                  className="card card-hover block overflow-hidden"
-                >
-                  <CoverImage
-                    src={trip.imageUrl}
-                    alt={trip.name}
-                    credit={trip.imageCredit}
-                    creditUrl={trip.imageCreditUrl}
-                    sizes="(max-width: 640px) 100vw, 384px"
-                    className="aspect-[16/9] w-full"
-                  />
-                  <div className="p-4">
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="font-semibold">{trip.name}</span>
-                      <span className="shrink-0 text-xs text-muted">
-                        {trip._count.members} traveler
-                        {trip._count.members === 1 ? "" : "s"} ·{" "}
-                        {trip._count.cities} cit
-                        {trip._count.cities === 1 ? "y" : "ies"}
-                      </span>
-                    </div>
-                    {trip.description && (
-                      <p className="mt-1 text-sm text-muted">
-                        {trip.description}
-                      </p>
-                    )}
+              <li
+                key={trip.id}
+                className="card card-hover relative overflow-hidden"
+              >
+                <CoverImage
+                  src={trip.imageUrl}
+                  alt={trip.name}
+                  credit={trip.imageCredit}
+                  creditUrl={trip.imageCreditUrl}
+                  sizes="(max-width: 640px) 100vw, 384px"
+                  className="aspect-[16/9] w-full"
+                />
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="font-semibold">{trip.name}</span>
+                    <span className="shrink-0 text-xs text-muted">
+                      {trip._count.members} traveler
+                      {trip._count.members === 1 ? "" : "s"} ·{" "}
+                      {trip._count.cities} cit
+                      {trip._count.cities === 1 ? "y" : "ies"}
+                    </span>
                   </div>
-                </Link>
+                  {trip.description && (
+                    <p className="mt-1 text-sm text-muted">
+                      {trip.description}
+                    </p>
+                  )}
+                </div>
+                <CardLink href={`/trips/${trip.id}`} label={trip.name} />
               </li>
             ))}
           </ul>
