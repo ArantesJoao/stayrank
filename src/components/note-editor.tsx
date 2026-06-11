@@ -49,7 +49,7 @@ export function NoteEditor({
         defaultValue={initialNote}
         autoFocus
         placeholder="Add your note about this place…"
-        className="flex-1 resize-y rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-blue"
+        className="flex-1 resize-y rounded-lg border border-hairline px-3 py-2 text-sm outline-none focus:border-brand-blue"
       />
       <div className="flex gap-2">
         <button

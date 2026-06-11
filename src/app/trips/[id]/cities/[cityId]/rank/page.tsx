@@ -49,7 +49,7 @@ export default async function RankCityPage({
             {city.leaderboard.map((entry, i) => (
               <li
                 key={entry.accommodation.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-3"
+                className="flex items-center justify-between gap-3 rounded-lg border border-hairline p-3"
               >
                 <div className="flex min-w-0 items-center gap-3">
                   {i < 3 ? (

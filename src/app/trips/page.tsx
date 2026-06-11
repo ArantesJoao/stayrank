@@ -57,7 +57,7 @@ export default async function TripsPage() {
         )}
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5">
+      <section className="card p-5">
         <h2 className="text-sm font-semibold text-slate-900">New trip</h2>
         <form action={createTrip} className="mt-3 space-y-3">
           <input

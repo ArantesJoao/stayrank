@@ -149,7 +149,7 @@ export function RankButtons({
             className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium transition ${
               active
                 ? slot.activeClass
-                : "border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700"
+                : "border-hairline text-slate-500 hover:border-slate-300 hover:text-slate-700"
             }`}
           >
             <Medal

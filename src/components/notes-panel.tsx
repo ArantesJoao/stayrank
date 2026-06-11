@@ -111,7 +111,7 @@ export function NotesPanel({ notes }: { notes: Note[] }) {
               role="dialog"
               aria-label="Notes"
               style={{ top: coords.top, left: coords.left, width: POPOVER_WIDTH }}
-              className={`fixed z-50 origin-top rounded-xl border border-slate-200 bg-white p-2 shadow-xl transition duration-150 ease-out ${
+              className={`fixed z-50 origin-top rounded-xl border border-hairline bg-white p-2 shadow-xl transition duration-150 ease-out ${
                 visible ? "scale-100 opacity-100" : "scale-95 opacity-0"
               }`}
             >

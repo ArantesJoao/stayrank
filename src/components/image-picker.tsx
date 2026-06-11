@@ -98,7 +98,7 @@ export function ImagePicker({
             className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center gap-2 border-b border-slate-100 p-3">
+            <div className="flex items-center gap-2 border-b border-hairline p-3">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -169,7 +169,7 @@ export function ImagePicker({
               )}
             </div>
 
-            <div className="flex items-center justify-between border-t border-slate-100 p-3">
+            <div className="flex items-center justify-between border-t border-hairline p-3">
               <a
                 href="https://unsplash.com/?utm_source=StayRank&utm_medium=referral"
                 target="_blank"

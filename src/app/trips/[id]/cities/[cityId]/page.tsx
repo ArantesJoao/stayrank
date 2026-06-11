@@ -276,7 +276,7 @@ export default async function CityPage({
         </h2>
         <form
           action={addAccWithCity}
-          className="mt-3 space-y-2 rounded-2xl border border-slate-200 bg-white p-4"
+          className="card mt-3 space-y-2 p-4"
         >
           <input
             name="name"
@@ -304,7 +304,7 @@ export default async function CityPage({
             name="note"
             rows={2}
             placeholder="Why this one? (optional note for the group)"
-            className="w-full resize-y rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-blue"
+            className="w-full resize-y rounded-lg border border-hairline px-3 py-2 text-sm outline-none focus:border-brand-blue"
           />
           <SubmitButton
             pendingText="Adding…"
