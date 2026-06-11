@@ -6,7 +6,7 @@ import { SignOutButton } from "@/components/auth-buttons";
 export async function SiteHeader() {
   const session = await auth();
   return (
-    <header className="sticky top-0 z-10 border-b border-brand-blue/10 bg-white/80 shadow-[0_4px_16px_-8px_rgba(0,116,196,0.25)] backdrop-blur-md">
+    <header className="sticky top-0 z-30 border-b border-brand-blue/10 bg-white/80 shadow-[0_4px_16px_-8px_rgba(0,116,196,0.25)] backdrop-blur-md">
       <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-3 sm:px-8">
         <Link href={session ? "/trips" : "/"} className="flex items-center">
           <Image
