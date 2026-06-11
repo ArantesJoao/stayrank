@@ -37,7 +37,13 @@ export async function getCityForUser(cityId: string, userId: string) {
   const city = await prisma.city.findFirst({
     where: { id: cityId, trip: { members: { some: { userId } } } },
     include: {
-      trip: { include: { _count: { select: { members: true } } } },
+      trip: {
+        include: {
+          _count: { select: { members: true } },
+          // Only this user's membership — used to gate admin-only actions.
+          members: { where: { userId }, select: { role: true } },
+        },
+      },
       accommodations: {
         orderBy: { createdAt: "asc" },
         include: {
@@ -82,5 +88,6 @@ export async function getCityForUser(cityId: string, userId: string) {
     myRankings,
     memberCount: city.trip._count.members,
     votersWhoRanked,
+    isAdmin: city.trip.members[0]?.role === "ADMIN",
   };
 }

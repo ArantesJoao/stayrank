@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { ImageIcon, X } from "lucide-react";
 
 export type PickedPhoto = {
   url: string;
@@ -84,7 +85,7 @@ export function ImagePicker({
         onClick={() => setOpen(true)}
         className="inline-flex items-center gap-1.5 rounded-md bg-white/90 px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-black/5 backdrop-blur transition hover:bg-white"
       >
-        <span aria-hidden>🖼️</span>
+        <ImageIcon aria-hidden className="h-3.5 w-3.5" />
         {label ?? (hasImage ? "Change cover" : "Add cover")}
       </button>
 
@@ -125,7 +126,7 @@ export function ImagePicker({
                 className="rounded-lg px-2 py-2 text-slate-400 hover:text-slate-700"
                 aria-label="Close"
               >
-                ✕
+                <X className="h-4 w-4" />
               </button>
             </div>
 

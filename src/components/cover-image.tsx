@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ImageIcon, Loader2 } from "lucide-react";
 
 const UTM = "utm_source=StayRank&utm_medium=referral";
 function withUtm(url: string) {
@@ -16,6 +17,7 @@ export function CoverImage({
   creditUrl,
   sizes = "(max-width: 768px) 100vw, 768px",
   className = "",
+  loading = false,
   children,
 }: {
   src?: string | null;
@@ -24,6 +26,8 @@ export function CoverImage({
   creditUrl?: string | null;
   sizes?: string;
   className?: string;
+  /** When there's no image yet but one is being fetched, show a spinner. */
+  loading?: boolean;
   children?: React.ReactNode;
 }) {
   return (
@@ -32,9 +36,19 @@ export function CoverImage({
         <Image src={src} alt={alt} fill sizes={sizes} className="object-cover" />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-blue/15 via-white to-brand-orange/15">
-          <span className="text-3xl opacity-50" aria-hidden>
-            🏞️
-          </span>
+          {loading ? (
+            <Loader2
+              aria-label="Finding a photo…"
+              className="h-8 w-8 animate-spin text-slate-400/60"
+              strokeWidth={1.5}
+            />
+          ) : (
+            <ImageIcon
+              aria-hidden
+              className="h-10 w-10 text-slate-400/60"
+              strokeWidth={1.5}
+            />
+          )}
         </div>
       )}
 

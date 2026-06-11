@@ -4,6 +4,7 @@ import { getUserTrips } from "@/lib/data";
 import { createTrip } from "@/lib/actions";
 import { CURRENCIES } from "@/lib/format";
 import { CoverImage } from "@/components/cover-image";
+import { SubmitButton } from "@/components/submit-button";
 
 export default async function TripsPage() {
   const session = await auth();
@@ -73,17 +74,6 @@ export default async function TripsPage() {
           />
           <div className="flex flex-wrap gap-4">
             <label className="flex items-center gap-2 text-sm text-slate-600">
-              <span className="shrink-0">People splitting the cost</span>
-              <input
-                name="partySize"
-                type="number"
-                min="1"
-                max="100"
-                defaultValue={2}
-                className="w-20 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-blue"
-              />
-            </label>
-            <label className="flex items-center gap-2 text-sm text-slate-600">
               <span className="shrink-0">Currency</span>
               <select
                 name="currency"
@@ -97,13 +87,24 @@ export default async function TripsPage() {
                 ))}
               </select>
             </label>
+            <label className="flex items-center gap-2 text-sm text-slate-600">
+              <span className="shrink-0">Party size</span>
+              <input
+                name="partySize"
+                type="number"
+                min="1"
+                max="100"
+                defaultValue={2}
+                className="w-20 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-blue"
+              />
+            </label>
           </div>
-          <button
-            type="submit"
+          <SubmitButton
+            pendingText="Creating…"
             className="btn-brand rounded-lg px-5 py-2.5 text-sm font-medium transition"
           >
             Create trip
-          </button>
+          </SubmitButton>
         </form>
       </section>
     </div>

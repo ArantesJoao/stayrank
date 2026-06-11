@@ -6,7 +6,10 @@ import { nanoid } from "nanoid";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { searchPhotos, triggerDownload } from "@/lib/unsplash";
-import { getCachedLinkPreview } from "@/lib/link-preview";
+import {
+  isScrapableListingUrl,
+  schedulePreviewBackfills,
+} from "@/lib/accommodation-preview";
 
 async function requireUserId() {
   const session = await auth();
@@ -180,13 +183,23 @@ export async function addAccommodation(cityId: string, formData: FormData) {
     where: { cityId_dedupeKey: { cityId, dedupeKey } },
   });
 
+  // The accommodation that ends up needing a background image scrape (if any).
+  let toBackfill: {
+    id: string;
+    url: string | null;
+    previewImageUrl: string | null;
+    previewStatus: string;
+    previewAttemptedAt: Date | null;
+  } | null = null;
+
   if (existing) {
     // Already suggested — record this traveler as a contributor (with their
-    // note) and backfill the preview only if it's still missing (cached fetch).
-    const needsPreview = url && !existing.previewImageUrl;
-    const preview = needsPreview ? await getCachedLinkPreview(url) : {};
+    // note), and (re)open the preview scrape if it's still missing an image.
+    const resolvedUrl = existing.url ?? (url || null);
+    const reopenPreview =
+      isScrapableListingUrl(resolvedUrl) && !existing.previewImageUrl;
 
-    await prisma.$transaction([
+    const [, updated] = await prisma.$transaction([
       prisma.accommodationContributor.upsert({
         where: {
           accommodationId_userId: { accommodationId: existing.id, userId },
@@ -197,38 +210,37 @@ export async function addAccommodation(cityId: string, formData: FormData) {
       prisma.accommodation.update({
         where: { id: existing.id },
         data: {
-          url: existing.url ?? (url || null),
+          url: resolvedUrl,
           totalPrice: existing.totalPrice ?? totalPrice,
-          previewImageUrl: existing.previewImageUrl ?? preview.imageUrl ?? null,
-          previewTitle: existing.previewTitle ?? preview.title ?? null,
-          previewDescription:
-            existing.previewDescription ?? preview.description ?? null,
-          previewFetchedAt:
-            existing.previewImageUrl || preview.imageUrl
-              ? (existing.previewFetchedAt ?? new Date())
-              : existing.previewFetchedAt,
+          // Reset to PENDING so the scrape runs again for a newly-added link.
+          ...(reopenPreview
+            ? { previewStatus: "PENDING", previewAttemptedAt: null }
+            : {}),
         },
       }),
     ]);
+    if (reopenPreview) toBackfill = updated;
   } else {
-    // New accommodation — fetch (cached) preview when a URL is provided.
-    const preview = url ? await getCachedLinkPreview(url) : {};
-    await prisma.accommodation.create({
+    // New accommodation — the image is scraped in the background (see below).
+    toBackfill = await prisma.accommodation.create({
       data: {
         cityId,
         name,
         url: url || null,
         totalPrice,
-        previewImageUrl: preview.imageUrl ?? null,
-        previewTitle: preview.title ?? null,
-        previewDescription: preview.description ?? null,
-        previewFetchedAt: preview.imageUrl ? new Date() : null,
+        // Only Booking/Airbnb links are scraped; anything else is left DONE
+        // so the background job never picks it up.
+        previewStatus: isScrapableListingUrl(url) ? "PENDING" : "DONE",
         dedupeKey,
         addedById: userId,
         contributors: { create: { userId, note } },
       },
     });
   }
+
+  // Kick off the scrape now (runs after the response via after()); if it's lost
+  // to a restart, the city page re-triggers it on the next view.
+  if (toBackfill) schedulePreviewBackfills([toBackfill]);
 
   revalidatePath(`/trips/${city.tripId}/cities/${cityId}`);
 }
@@ -259,7 +271,9 @@ export async function deleteAccommodation(accommodationId: string) {
     include: { city: true },
   });
   if (!acc) return;
-  await assertMember(acc.city.tripId, userId);
+  const member = await assertMember(acc.city.tripId, userId);
+  // Only trip admins may delete an accommodation.
+  if (member.role !== "ADMIN") return;
   await prisma.accommodation.delete({ where: { id: accommodationId } });
   revalidatePath(`/trips/${acc.city.tripId}/cities/${acc.cityId}`);
 }

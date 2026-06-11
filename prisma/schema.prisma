@@ -122,11 +122,15 @@ model Accommodation {
   url           String?
   // Total price for the whole place/stay; per-person = totalPrice / trip.partySize.
   totalPrice    Float?
-  // Auto link-preview (Microlink) snapshot shown on the card.
+  // Auto link-preview (scraped og:image) snapshot shown on the card.
   previewImageUrl   String?
   previewTitle      String?
   previewDescription String?
   previewFetchedAt  DateTime?
+  // Background scrape lifecycle: PENDING (needs fetch) | DONE | FAILED.
+  // Re-attempted on view while != DONE, throttled by previewAttemptedAt.
+  previewStatus      String    @default("PENDING")
+  previewAttemptedAt DateTime?
   // Normalized key used to dedupe within a city (lowercased url, else name).
   dedupeKey     String
   addedById     String

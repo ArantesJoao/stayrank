@@ -1,15 +1,16 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Check, Medal } from "lucide-react";
 import { saveRankings } from "@/lib/actions";
 
 type Option = { id: string; name: string };
 type InitialRanking = { rank: number; accommodationId: string };
 
 const SLOTS = [
-  { rank: 1, label: "🥇 1st choice", points: 3 },
-  { rank: 2, label: "🥈 2nd choice", points: 2 },
-  { rank: 3, label: "🥉 3rd choice", points: 1 },
+  { rank: 1, label: "1st choice", points: 3, medalClass: "text-yellow-500" },
+  { rank: 2, label: "2nd choice", points: 2, medalClass: "text-slate-400" },
+  { rank: 3, label: "3rd choice", points: 1, medalClass: "text-amber-700" },
 ];
 
 export function RankingEditor({
@@ -69,7 +70,8 @@ export function RankingEditor({
             className="rounded-2xl border border-slate-200 bg-white p-4"
           >
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-900">
+              <span className="flex items-center gap-1.5 text-sm font-medium text-slate-900">
+                <Medal aria-hidden className={`h-4 w-4 ${slot.medalClass}`} />
                 {slot.label}
               </span>
               <span className="text-xs text-slate-400">{slot.points} pts</span>
@@ -99,7 +101,10 @@ export function RankingEditor({
           {pending ? "Saving…" : "Save my ranking"}
         </button>
         {saved && !pending && (
-          <span className="text-sm text-green-600">Saved ✓</span>
+          <span className="flex items-center gap-1 text-sm text-green-600">
+            <Check aria-hidden className="h-4 w-4" />
+            Saved
+          </span>
         )}
       </div>
     </div>
