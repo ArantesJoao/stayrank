@@ -12,7 +12,7 @@ export function SignInButton({ className }: { className?: string }) {
         type="submit"
         className={
           className ??
-          "inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700"
+          "btn-brand inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition"
         }
       >
         <GoogleGlyph />

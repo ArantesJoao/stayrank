@@ -7,6 +7,13 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "images.unsplash.com" },
+      // Microlink preview images come from arbitrary listing hosts.
+      { protocol: "https", hostname: "**" },
+    ],
+  },
 };
 
 export default nextConfig;
