@@ -31,6 +31,17 @@ body {
   font-family: var(--font-poppins), system-ui, sans-serif;
 }
 
+/* Tailwind v4 dropped the default cursor:pointer on buttons — restore it
+   globally for enabled interactive controls. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  label[for],
+  summary {
+    cursor: pointer;
+  }
+}
+
 /* Primary button — solid brand blue (Airbnb-style, not gradient) */
 .btn-brand {
   background-color: var(--brand-blue);

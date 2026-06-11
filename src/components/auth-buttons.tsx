@@ -1,11 +1,17 @@
 import { signIn, signOut } from "@/auth";
 
-export function SignInButton({ className }: { className?: string }) {
+export function SignInButton({
+  className,
+  redirectTo = "/trips",
+}: {
+  className?: string;
+  redirectTo?: string;
+}) {
   return (
     <form
       action={async () => {
         "use server";
-        await signIn("google", { redirectTo: "/trips" });
+        await signIn("google", { redirectTo });
       }}
     >
       <button
