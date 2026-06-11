@@ -7,6 +7,17 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
+  experimental: {
+    // The trip/city pages are dynamic (they read auth), so the client Router
+    // Cache treats them as stale immediately (default dynamic = 0s) and
+    // refetches on every back-navigation. Keep a freshly-visited page warm for
+    // 30s so hitting "back" is instant; mutations still revalidate via the
+    // server actions' revalidatePath calls.
+    staleTimes: {
+      dynamic: 30,
+      static: 180,
+    },
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
