@@ -15,7 +15,9 @@ export function SignInButton({ className }: { className?: string }) {
           "btn-brand inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition"
         }
       >
-        <GoogleGlyph />
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white">
+          <GoogleGlyph />
+        </span>
         Continue with Google
       </button>
     </form>
@@ -42,7 +44,7 @@ export function SignOutButton() {
 
 function GoogleGlyph() {
   return (
-    <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden>
+    <svg width="13" height="13" viewBox="0 0 48 48" aria-hidden>
       <path
         fill="#FFC107"
         d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35.5 24 35.5c-6.3 0-11.5-5.1-11.5-11.5S17.7 12.5 24 12.5c2.9 0 5.6 1.1 7.6 2.9l5.7-5.7C33.6 6.4 29 4.5 24 4.5 13.2 4.5 4.5 13.2 4.5 24S13.2 43.5 24 43.5c10.7 0 19.5-8.7 19.5-19.5 0-1.2-.1-2.3-.4-3.5z"

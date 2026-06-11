@@ -1,13 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  ArrowLeft,
-  ChevronDown,
-  ExternalLink,
-  Medal,
-  Trash2,
-  Trophy,
-} from "lucide-react";
+import { ArrowLeft, Trash2, Trophy } from "lucide-react";
 import { auth } from "@/auth";
 import { getCityForUser } from "@/lib/data";
 import {
@@ -16,7 +9,7 @@ import {
   setMyNote,
 } from "@/lib/actions";
 import { setCityImage } from "@/lib/actions";
-import { RankingEditor } from "@/components/ranking-editor";
+import { NoteEditor } from "@/components/note-editor";
 import { AvatarStack } from "@/components/avatar-stack";
 import { CoverImage } from "@/components/cover-image";
 import { ImagePicker } from "@/components/image-picker";
@@ -33,9 +26,6 @@ import { faviconUrl, listingSource } from "@/lib/listing";
 // ~60s; give the function room to finish. Raise on Vercel Pro (up to 300) for
 // the most reliable Booking previews — Hobby caps this at 60.
 export const maxDuration = 60;
-
-// Gold / silver / bronze tints for the top-3 leaderboard medals.
-const MEDAL_CLASSES = ["text-yellow-500", "text-slate-400", "text-amber-700"];
 
 export default async function CityPage({
   params,
@@ -96,6 +86,15 @@ export default async function CityPage({
         </div>
       </div>
 
+      {/* Primary CTA → the dedicated ranking screen */}
+      <Link
+        href={`/trips/${id}/cities/${cityId}/rank`}
+        className="btn-brand flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-semibold shadow-md ring-1 ring-brand-blue/20 transition hover:shadow-lg"
+      >
+        <Trophy aria-hidden className="h-4 w-4" />
+        Rank your top 3 &amp; see results
+      </Link>
+
       {/* Default view: accommodation cards with everyone's notes */}
       <section className="space-y-3">
         {city.accommodations.length === 0 ? (
@@ -119,7 +118,7 @@ export default async function CityPage({
                     src={a.previewImageUrl}
                     alt={a.previewTitle ?? a.name}
                     sizes="(max-width: 640px) 100vw, 224px"
-                    className="aspect-[4/3] w-full shrink-0 sm:w-56 sm:self-start"
+                    className="aspect-[4/3] w-full shrink-0 sm:aspect-auto sm:w-56"
                     loading={
                       isScrapableListingUrl(a.url) &&
                       !a.previewImageUrl &&
@@ -189,19 +188,6 @@ export default async function CityPage({
                           />
                           Added by {a.addedBy.name ?? "someone"}
                         </div>
-                        {a.url && (
-                          <a
-                            href={a.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-400"
-                          >
-                            <ExternalLink aria-hidden className="h-3.5 w-3.5" />
-                            {source && source.key !== "other"
-                              ? `View on ${source.label}`
-                              : "View listing"}
-                          </a>
-                        )}
                       </div>
 
                       {/* Only trip admins can delete an accommodation. */}
@@ -237,30 +223,8 @@ export default async function CityPage({
                       </ul>
                     )}
 
-                    {/* Your own note — collapsed behind an "Edit your note" toggle */}
-                    <details className="mt-3">
-                      <summary className="inline-flex cursor-pointer list-none items-center text-xs font-medium text-slate-600 underline underline-offset-2 hover:text-slate-900">
-                        {myNote ? "Edit your note" : "Add a note"}
-                      </summary>
-                      <form
-                        action={saveNote}
-                        className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end"
-                      >
-                        <textarea
-                          name="note"
-                          rows={2}
-                          defaultValue={myNote}
-                          placeholder="Add your note about this place…"
-                          className="flex-1 resize-y rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-blue"
-                        />
-                        <SubmitButton
-                          pendingText="Saving…"
-                          className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 transition hover:border-slate-400"
-                        >
-                          {myNote ? "Update note" : "Add note"}
-                        </SubmitButton>
-                      </form>
-                    </details>
+                    {/* Your own note — collapses + clears on save */}
+                    <NoteEditor action={saveNote} initialNote={myNote} />
                   </div>
                 </div>
               </article>
@@ -314,87 +278,6 @@ export default async function CityPage({
           </SubmitButton>
         </form>
       </section>
-
-      {/* Ranking + results — hidden by default */}
-      <details className="group rounded-2xl border border-slate-200 bg-white">
-        <summary className="flex cursor-pointer list-none items-center justify-between p-4 text-sm font-semibold text-slate-900">
-          <span className="flex items-center gap-1.5">
-            <Trophy aria-hidden className="h-4 w-4 text-amber-500" />
-            Rank your top 3 &amp; see results
-          </span>
-          <ChevronDown
-            aria-hidden
-            className="h-4 w-4 text-slate-400 transition group-open:rotate-180"
-          />
-        </summary>
-
-        <div className="space-y-8 border-t border-slate-100 p-4">
-          {/* Your ranking */}
-          <div>
-            <h3 className="text-sm font-semibold text-slate-900">Your top 3</h3>
-            <p className="text-xs text-slate-500">
-              Pick your favorites — 1st = 3 pts, 2nd = 2, 3rd = 1.
-            </p>
-            <div className="mt-3">
-              <RankingEditor
-                cityId={cityId}
-                options={city.accommodations.map((a) => ({
-                  id: a.id,
-                  name: a.name,
-                }))}
-                initial={city.myRankings.map((r) => ({
-                  rank: r.rank,
-                  accommodationId: r.accommodationId,
-                }))}
-              />
-            </div>
-          </div>
-
-          {/* Leaderboard */}
-          <div>
-            <h3 className="text-sm font-semibold text-slate-900">Leaderboard</h3>
-            {city.leaderboard.every((e) => e.points === 0) ? (
-              <p className="mt-2 text-sm text-slate-500">
-                No votes yet — be the first to rank above.
-              </p>
-            ) : (
-              <ol className="mt-3 space-y-2">
-                {city.leaderboard.map((entry, i) => (
-                  <li
-                    key={entry.accommodation.id}
-                    className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-3"
-                  >
-                    <div className="flex min-w-0 items-center gap-3">
-                      {i < 3 ? (
-                        <Medal
-                          aria-hidden
-                          className={`h-5 w-5 shrink-0 ${MEDAL_CLASSES[i]}`}
-                        />
-                      ) : (
-                        <span className="w-5 shrink-0 text-center text-sm font-medium text-slate-400">
-                          {i + 1}
-                        </span>
-                      )}
-                      <div className="min-w-0">
-                        <p className="truncate font-medium text-slate-900">
-                          {entry.accommodation.name}
-                        </p>
-                        <p className="text-xs text-slate-400">
-                          {entry.voteCount} vote
-                          {entry.voteCount === 1 ? "" : "s"}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-sm font-semibold text-slate-900">
-                      {entry.points} pts
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </div>
-        </div>
-      </details>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, MapPin, Users, Wallet } from "lucide-react";
+import { ArrowLeft, MapPin, Trophy, Users, Wallet } from "lucide-react";
 import { auth } from "@/auth";
 import { getTripForUser } from "@/lib/data";
 import {
@@ -124,7 +124,7 @@ export default async function TripPage({
                   </div>
                   <Link
                     href={`/trips/${trip.id}/cities/${city.id}`}
-                    className="flex items-center justify-between p-4"
+                    className="flex items-center justify-between px-4 pb-3 pt-4"
                   >
                     <span className="font-semibold">{city.name}</span>
                     <span className="text-xs text-muted">
@@ -132,6 +132,15 @@ export default async function TripPage({
                       {city._count.accommodations === 1 ? "" : "s"}
                     </span>
                   </Link>
+                  <div className="px-4 pb-4">
+                    <Link
+                      href={`/trips/${trip.id}/cities/${city.id}/rank`}
+                      className="btn-brand flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-xs font-semibold shadow-sm ring-1 ring-brand-blue/20 transition hover:shadow-md"
+                    >
+                      <Trophy aria-hidden className="h-3.5 w-3.5" />
+                      Rank your top 3
+                    </Link>
+                  </div>
                 </li>
               ))}
             </ul>
