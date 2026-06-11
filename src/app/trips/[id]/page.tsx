@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, MapPin, Trophy, Users, Wallet } from "lucide-react";
+import { ArrowLeft, MapPin, Trash2, Trophy, Users, Wallet } from "lucide-react";
 import { auth } from "@/auth";
 import { getTripForUser } from "@/lib/data";
 import {
   addCity,
+  deleteCity,
+  deleteTrip,
   updateTripSettings,
   setTripImage,
   setCityImage,
@@ -12,6 +14,7 @@ import {
 import { InviteLink } from "@/components/invite-link";
 import { CURRENCIES } from "@/lib/format";
 import { AvatarStack } from "@/components/avatar-stack";
+import { ConfirmForm } from "@/components/confirm-form";
 import { CoverImage } from "@/components/cover-image";
 import { ImagePicker } from "@/components/image-picker";
 import { SubmitButton } from "@/components/submit-button";
@@ -31,6 +34,9 @@ export default async function TripPage({
 
   const travelerCount = trip.members.length;
   const cityCount = trip.cities.length;
+  const isAdmin = trip.members.some(
+    (m) => m.userId === session!.user.id && m.role === "ADMIN",
+  );
 
   return (
     <div className="space-y-6">
@@ -113,13 +119,27 @@ export default async function TripPage({
                         className="aspect-[16/9] w-full"
                       />
                     </Link>
-                    <div className="absolute right-2 top-2">
+                    <div className="absolute right-2 top-2 flex items-center gap-1.5">
                       <ImagePicker
                         onSelect={setCityImage.bind(null, city.id)}
                         onRemove={setCityImage.bind(null, city.id, null)}
                         hasImage={Boolean(city.imageUrl)}
                         defaultQuery={city.name}
                       />
+                      {isAdmin && (
+                        <ConfirmForm
+                          action={deleteCity.bind(null, city.id)}
+                          message={`Delete ${city.name}? All of its accommodations and rankings are removed for everyone.`}
+                        >
+                          <SubmitButton
+                            pendingText=""
+                            aria-label={`Delete ${city.name}`}
+                            className="rounded-md bg-white/90 p-1.5 text-slate-600 shadow-sm ring-1 ring-black/5 backdrop-blur transition hover:bg-white hover:text-red-600"
+                          >
+                            <Trash2 aria-hidden className="h-3.5 w-3.5" />
+                          </SubmitButton>
+                        </ConfirmForm>
+                      )}
                     </div>
                   </div>
                   <Link
@@ -234,6 +254,23 @@ export default async function TripPage({
                 Update
               </SubmitButton>
             </form>
+
+            {isAdmin && (
+              <div className="mt-4 border-t border-hairline pt-4">
+                <ConfirmForm
+                  action={deleteTrip.bind(null, trip.id)}
+                  message={`Delete "${trip.name}"? This permanently removes the trip — all cities, accommodations, notes and rankings — for every traveler.`}
+                >
+                  <SubmitButton
+                    pendingText="Deleting…"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:border-red-300 hover:bg-red-50"
+                  >
+                    <Trash2 aria-hidden className="h-3.5 w-3.5" />
+                    Delete trip
+                  </SubmitButton>
+                </ConfirmForm>
+              </div>
+            )}
           </section>
         </aside>
       </div>

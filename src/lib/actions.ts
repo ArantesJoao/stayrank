@@ -281,6 +281,27 @@ export async function setMyNote(accommodationId: string, formData: FormData) {
   revalidatePath(`/trips/${acc.city.tripId}/cities/${acc.cityId}`);
 }
 
+export async function deleteCity(cityId: string) {
+  const userId = await requireUserId();
+  const city = await prisma.city.findUnique({ where: { id: cityId } });
+  if (!city) return;
+  const member = await assertMember(city.tripId, userId);
+  // Only trip admins may delete a city (accommodations/rankings cascade).
+  if (member.role !== "ADMIN") return;
+  await prisma.city.delete({ where: { id: cityId } });
+  revalidatePath(`/trips/${city.tripId}`);
+}
+
+export async function deleteTrip(tripId: string) {
+  const userId = await requireUserId();
+  const member = await assertMember(tripId, userId);
+  // Only trip admins may delete the trip (members/cities cascade).
+  if (member.role !== "ADMIN") return;
+  await prisma.trip.delete({ where: { id: tripId } });
+  revalidatePath("/trips");
+  redirect("/trips");
+}
+
 export async function deleteAccommodation(accommodationId: string) {
   const userId = await requireUserId();
   const acc = await prisma.accommodation.findUnique({
